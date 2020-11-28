@@ -85,7 +85,7 @@ def train(args):
     model = EfficientNet.from_pretrained(f'efficientnet-b{args.efficientnet_model_number}', 
                                          num_classes=1049)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.w_decay)
+    optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
     scheduler = WarmupLinearSchedule(optimizer, warmup_steps=len(dataloaders['train'])*3, 
                                      t_total=len(dataloaders['train'])*args.num_epochs)
     model.to(device)
