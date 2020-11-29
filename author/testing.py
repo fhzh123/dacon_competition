@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 # Import custom modules
 from dataset import CustomDataset, PadCollate
-from model.transformer import Transformer
+from model.total_model import Total_model
 
 def testing(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -40,11 +40,12 @@ def testing(args):
     #===================================#
 
     print("Build model")
-    model = Transformer(vocab_num, author_num=5, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
+    model = Total_model(vocab_num, author_num=5, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
-                        d_embedding=args.d_embedding, n_head=args.n_head,
+                        d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,
-                        num_encoder_layer=args.num_encoder_layer, device=device)
+                        num_encoder_layer=args.num_encoder_layer, bilinear=args.bilinear, 
+                        device=device)
     model.load_state_dict(torch.load(os.path.join(args.save_path, 'model_saved.pt')))
     model = model.to(device)
     model = model.eval()

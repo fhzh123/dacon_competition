@@ -14,7 +14,7 @@ from torch.nn.utils import clip_grad_norm_
 
 # Import custom modules
 from dataset import CustomDataset, PadCollate
-from model.transformer import Transformer
+from model.total_model import Total_model
 from model.optimizer import Ralamb, WarmupLinearSchedule
 
 def training(args):
@@ -57,11 +57,12 @@ def training(args):
     #===================================#
 
     print("Build model")
-    model = Transformer(vocab_num, author_num=5, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
+    model = Total_model(vocab_num, author_num=5, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
-                        d_embedding=args.d_embedding, n_head=args.n_head,
+                        d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,
-                        num_encoder_layer=args.num_encoder_layer, device=device)
+                        num_encoder_layer=args.num_encoder_layer, bilinear=args.bilinear, 
+                        device=device)
     optimizer = Ralamb(params=filter(lambda p: p.requires_grad, model.parameters()), 
                        lr=args.max_lr, weight_decay=args.w_decay)
     scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.n_warmup_epochs*len(dataloader_dict['train']), 
