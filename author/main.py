@@ -41,7 +41,7 @@ if __name__=='__main__':
     parser.add_argument('--batch_size', default=48,  type=int, help='Batch size; default is 48')
     parser.add_argument('--min_len', default=4, type=int, help='Minumum length of sentences; default is 4')
     parser.add_argument('--max_len', default=550, type=int, help='Maximum lenghth of sentences; default is 550')
-    parser.add_argument('--n_warmup_epochs', default=3, type=int, help='Learning rate warmup epoch; Default is 3')
+    parser.add_argument('--n_warmup_epochs', default=0, type=int, help='Learning rate warmup epoch; Default is 0')
     parser.add_argument('--max_lr', default=1e-4, type=float, help='Maximum learning rate of warmup; default is 1e-4')
     parser.add_argument('--w_decay', default=1e-5, type=float, help='Weight decay of optimizer; dafault is 1e-5')
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout ratio; default is 0.2')
@@ -56,7 +56,7 @@ if __name__=='__main__':
     parser.add_argument('--d_k', type=int, default=64, help='Key vector dimension; default is 64')
     parser.add_argument('--d_v', type=int, default=64, help='Value vector dimension; default is 64')
     parser.add_argument('--n_head', type=int, default=8, help='Multihead count; default is 8')
-    parser.add_argument('--dim_feedforward', type=int, default=512, help='Feedforward layer Dimension; default is 512')
+    parser.add_argument('--dim_feedforward', type=int, default=2048, help='Feedforward layer Dimension; default is 2048')
     args = parser.parse_args()
 
     main(args)

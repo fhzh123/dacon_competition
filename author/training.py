@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import torch.nn.utils as torch_utils
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # Import custom modules
 from dataset import CustomDataset, PadCollate
@@ -67,8 +68,11 @@ def training(args):
     #                    lr=args.max_lr, weight_decay=args.w_decay)
     optimizer = optim.Lamb(params=model.parameters(), 
                            lr=args.max_lr, weight_decay=args.w_decay)
-    scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.n_warmup_epochs*len(dataloader_dict['train']), 
-                                     t_total=len(dataloader_dict['train'])*args.num_epoch)
+    if args.n_warmup_epochs != 0:
+        scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.n_warmup_epochs*len(dataloader_dict['train']), 
+                                        t_total=len(dataloader_dict['train'])*args.num_epoch)
+    else:
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10)
     model.to(device)
 
     #===================================#
@@ -106,7 +110,10 @@ def training(args):
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
-                        scheduler.step()
+                        if args.n_warmup_epochs != 0:
+                            scheduler.step()
+                        else:
+                            scheduler.step(loss)
                         clip_grad_norm_(model.parameters(), args.grad_clip)
                         # Print loss value only training
                         if freq == args.print_freq or i == 0 or i == len(dataloader_dict['train']):
@@ -135,5 +142,5 @@ def training(args):
                     if not os.path.exists(args.save_path):
                         os.mkdir(args.save_path)
                     torch.save(model.state_dict(), 
-                               os.path.join(args.save_path, f'model_saved.pt'))
+                               os.path.join(args.save_path, f'model_saved2.pt'))
                     best_val_loss = val_loss

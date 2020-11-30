@@ -15,6 +15,7 @@ class rnn_GRU(nn.Module):
         self.embedding_dropout = embedding_dropout
 
         self.embedding = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
+        self.src_linear = nn.Linear(d_embedding, d_model)
 
         self.gru = nn.GRU(d_model, d_model, num_layers=n_layers, bidirectional=True, dropout=dropout)
         self.trg_linear = nn.Linear(d_model*2, d_model)
@@ -22,11 +23,11 @@ class rnn_GRU(nn.Module):
         
     def forward(self, src, hidden=None, cell=None):
         # Source sentence embedding
-        src = src.transpose(0, 1)
-        embeddings = self.embedding(src)  # (max_caption_length, batch_size, embed_dim)
-        embedded = F.dropout(embeddings, p=self.embedding_dropout, inplace=True) # (max_caption_length, batch_size, embed_dim)
+        outputs = src.transpose(0, 1)
+        outputs = self.embedding(outputs)  # (max_caption_length, batch_size, embed_dim)
+        outputs = self.src_linear(F.dropout(outputs, p=self.embedding_dropout, inplace=True)) # (max_caption_length, batch_size, embed_dim)
         # Bidirectional SRU
-        outputs, hidden = self.gru(embedded, hidden)
+        outputs, hidden = self.gru(outputs, hidden)
         # sum bidirectional outputs
         outputs = torch.tanh(self.trg_linear(outputs)) # (max_caption_length, batch_size, embed_dim)
         outputs = self.trg_linear2(torch.cat((outputs[-2,:,:], outputs[-1,:,:]), dim=1))
