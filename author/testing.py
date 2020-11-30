@@ -6,6 +6,7 @@ import pandas as pd
 
 # Import PyTorch
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 # Import custom modules
@@ -55,10 +56,11 @@ def testing(args):
 
     for i, (src, _, index_) in enumerate(test_dataloader):
         src = src.to(device)
+        trg_softmax = nn.Softmax(dim=1)
 
         with torch.no_grad():
             predicted_logit = model(src)
-            predicted_logit_clone = predicted_logit.clone().detach()
+            predicted_logit_clone = trg_softmax(predicted_logit.clone().detach())
             index_clone = index_.clone().detach()
             if i == 0:
                 predicted_total = torch.cat((index_clone.type('torch.FloatTensor').unsqueeze(1), 

@@ -2,13 +2,13 @@
 import os
 import time
 import pickle
+import torch_optimizer as optim
 
 # Import PyTorch
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.utils as torch_utils
-from torch import optim
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 
@@ -61,10 +61,12 @@ def training(args):
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
                         d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,
-                        num_encoder_layer=args.num_encoder_layer, bilinear=args.bilinear, 
-                        device=device)
-    optimizer = Ralamb(params=filter(lambda p: p.requires_grad, model.parameters()), 
-                       lr=args.max_lr, weight_decay=args.w_decay)
+                        bilinear=args.bilinear, num_transformer_layer=args.num_transformer_layer,
+                        num_rnn_layer=args.num_rnn_layer, device=device)
+    # optimizer = Ralamb(params=filter(lambda p: p.requires_grad, model.parameters()), 
+    #                    lr=args.max_lr, weight_decay=args.w_decay)
+    optimizer = optim.Lamb(params=model.parameters(), 
+                           lr=args.max_lr, weight_decay=args.w_decay)
     scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.n_warmup_epochs*len(dataloader_dict['train']), 
                                      t_total=len(dataloader_dict['train'])*args.num_epoch)
     model.to(device)

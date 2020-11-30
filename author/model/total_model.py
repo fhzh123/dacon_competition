@@ -6,14 +6,15 @@ from torch.nn.modules.activation import MultiheadAttention
 
 from .embedding.transformer_embedding import TransformerEmbedding
 from .modules.transformer_encoder import Transformer_Encoder
+from .modules.rnn_layers import rnn_GRU
 from .modules.transformer_sublayers import PositionalEncoding
 from .modules.transformer_utils import get_pad_mask, get_subsequent_mask
 
 class Total_model(nn.Module):
     def __init__(self, src_vocab_num, author_num=5, pad_idx=0, bos_idx=1, eos_idx=2, 
                  max_len=300, d_model=512, d_embedding=256, n_head=8, d_k=64, d_v=64,
-                 dim_feedforward=2048, dropout=0.1, num_encoder_layer=8, bilinear=False,
-                 device=None):
+                 dim_feedforward=2048, dropout=0.1, bilinear=False,
+                 num_transformer_layer=8, num_rnn_layer=6, device=None):
 
         super(Total_model, self).__init__()
 
@@ -33,20 +34,49 @@ class Total_model(nn.Module):
         self.embedding_linear = nn.Linear(d_embedding, d_model)
         self.embedding_norm = nn.LayerNorm(d_model, eps=1e-6)
 
-        # Output part
-        self.trg_output_linear = nn.Linear(d_model, d_embedding, bias=False)
-        self.trg_output_norm = nn.LayerNorm(d_embedding)
-        self.trg_output_linear2 = nn.Linear(d_embedding, author_num, bias=False)
-        self.trg_output_bilinear = nn.Bilinear(author_num, author_num, author_num)
-        self.trg_softmax = nn.Softmax(dim=1)
-
         # Transformer
         self.transformer_encoder = Transformer_Encoder(d_model, dim_feedforward, 
-                                                       n_layers=num_encoder_layer,
+                                                       n_layers=num_transformer_layer,
                                                        n_head=n_head, d_k=d_k, d_v=d_v, 
                                                        pad_idx=pad_idx, dropout=dropout)
 
+        # Transformer output part
+        self.trs_trg_output_linear = nn.Linear(d_model, d_embedding, bias=False)
+        self.trs_trg_output_norm = nn.LayerNorm(d_embedding)
+        self.trs_trg_output_linear2 = nn.Linear(d_embedding, author_num, bias=False)
+        self.trs_trg_softmax = nn.Softmax(dim=1)
+
+        # GRU
+        self.rnn_gru = rnn_GRU(src_vocab_num, author_num=author_num, d_embedding=d_embedding, 
+                               d_model=d_model, n_layers=num_rnn_layer, pad_idx=pad_idx,
+                               dropout=dropout, embedding_dropout=dropout*0.5)
+
+        # RNN output part
+        self.rnn_trg_output_linear = nn.Linear(d_model, d_embedding, bias=False)
+        self.rnn_trg_output_norm = nn.LayerNorm(d_embedding)
+        self.rnn_trg_output_linear2 = nn.Linear(d_embedding, author_num, bias=False)
+        self.rnn_trg_softmax = nn.Softmax(dim=1)
+
+        # Concat
+        if bilinear:
+            self.output_linear = nn.Bilinear(author_num, author_num, author_num)
+        else:
+            self.output_linear = nn.Linear(author_num*2, author_num)
+
     def forward(self, src_input_sentence):
+
+        #===================================#
+        #============Transformer============#
+        #===================================#
+
+        rnn_out, *_ = self.rnn_gru(src_input_sentence)
+        rnn_out = self.rnn_trg_output_norm(self.dropout(F.gelu(self.rnn_trg_output_linear(rnn_out))))
+        rnn_out = self.rnn_trg_output_linear2(rnn_out)
+        
+        #===================================#
+        #============Transformer============#
+        #===================================#
+
         src_mask = get_pad_mask(src_input_sentence, self.pad_idx)
 
         # encoder_out = self.src_embedding(src_input_sentence)#.transpose(0, 1)
@@ -54,10 +84,16 @@ class Total_model(nn.Module):
         encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
         # encoder_out = encoder_out.transpose(0, 1).contiguous()
 
-        encoder_out = self.trg_output_norm(self.dropout(F.gelu(self.trg_output_linear(encoder_out))))
-        encoder_out = self.trg_output_linear2(encoder_out)
+        encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(encoder_out))))
+        encoder_out = self.trs_trg_output_linear2(encoder_out)[:,0,:]
+
+        #===================================#
+        #============Concatenate============#
+        #===================================#
+
         if self.bilinear:
-            logit = self.trg_softmax(self.trg_output_bilinear(encoder_out[:,0,:], encoder_out[:,-1,:]))
+            logit = self.output_linear(rnn_out, encoder_out)
         else:
-            logit = self.trg_softmax(encoder_out[:,0,:])
+            logit = self.output_linear(torch.cat((rnn_out, encoder_out), dim=1))
+
         return logit

@@ -49,7 +49,8 @@ if __name__=='__main__':
     parser.add_argument('--print_freq', type=int, default=300, help='Print train loss frequency; default is 300')
     # Model setting
     parser.add_argument('--bilinear', action='store_true')
-    parser.add_argument('--num_encoder_layer', type=int, default=6, help='Number of encoder layer; default is 6')
+    parser.add_argument('--num_transformer_layer', type=int, default=6, help='Number of transformer layer; default is 6')
+    parser.add_argument('--num_rnn_layer', type=int, default=6, help='Number of rnn layer; default is 6')
     parser.add_argument('--d_model', type=int, default=512, help='Hidden state vector dimension; default is 512')
     parser.add_argument('--d_embedding', type=int, default=512, help='Embedding vector dimension; default is 256')
     parser.add_argument('--d_k', type=int, default=64, help='Key vector dimension; default is 64')

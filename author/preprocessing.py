@@ -1,5 +1,6 @@
 # Import modules
 import os
+import re
 import pickle
 import pandas as pd
 import sentencepiece as spm
@@ -16,9 +17,32 @@ def preprocessing(args):
     # 1) Train data load
     train_dat = pd.read_csv(os.path.join(args.data_path, 'train.csv'))
 
+    # 2) Preprocessing
+    def alpha_num(text):
+        return re.sub(r'[^a-zA-z0-9\s]', '', text)
+
+    def remove_stopwords(text):
+        final_text = []
+        for i in text.split():
+            if i.strip().lower() not in stopwords:
+                final_text.append(i.strip())
+        return " ".join(final_text)
+
+    stopwords = [ "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", 
+                "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "could", 
+                "did", "do", "does", "doing", "down", "during", "each", "few", "for", "from", "further", "had", "has", 
+                "have", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself", 
+                "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "it", "it's", "its", "itself", 
+                "let's", "me", "more", "most", "my", "myself", "nor", "of", "on", "once", "only", "or", "other", "ought", "our", "ours", 
+                "ourselves", "out", "over", "own", "same", "she", "she'd", "she'll", "she's", "should", "so", "some", "such", "than", "that", 
+                "that's", "the", "their", "theirs", "them", "themselves", "then", "there", "there's", "these", "they", "they'd", "they'll", 
+                "they're", "they've", "this", "those", "through", "to", "too", "under", "until", "up", "very", "was", "we", "we'd", "we'll", 
+                "we're", "we've", "were", "what", "what's", "when", "when's", "where", "where's", "which", "while", "who", "who's", "whom", 
+                "why", "why's", "with", "would", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves" ]
+
     # 2) Train valid split
     index_list = train_dat['index']
-    text_list = train_dat['text']
+    text_list = train_dat['text'].str.lower().apply(alpha_num).apply(remove_stopwords)
     author_list = train_dat['author']
     text_, author_, index_ = train_valid_split(text_list, author_list, index_list, split_percent=args.valid_percent)
 
@@ -39,7 +63,7 @@ def preprocessing(args):
     spm.SentencePieceProcessor()
     spm.SentencePieceTrainer.Train(
         f'--input={args.save_path}/text.txt --model_prefix={args.save_path}/m_text '
-        f'--vocab_size={args.vocab_size} --character_coverage=0.995 '
+        f'--vocab_size={args.vocab_size} --character_coverage=0.995 --model_type=bpe '
         f'--split_by_whitespace=true --pad_id={args.pad_idx} --unk_id={args.unk_idx} '
         f'--bos_id={args.bos_idx} --eos_id={args.eos_idx}')
 
@@ -63,6 +87,7 @@ def preprocessing(args):
     #===================================#
 
     test_dat = pd.read_csv(os.path.join(args.data_path, 'test_x.csv'))
+    test_dat['text'] = test_dat['text'].str.lower().apply(alpha_num).apply(remove_stopwords)
     test_text_indices = [[args.bos_idx] + spm_.EncodeAsIds(text) + [args.eos_idx] for text in test_dat['text']]
     test_index_indices = test_dat['index'].tolist()
 
