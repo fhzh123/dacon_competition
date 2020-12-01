@@ -45,9 +45,9 @@ def testing(args):
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
                         d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,
-                        num_encoder_layer=args.num_encoder_layer, bilinear=args.bilinear, 
-                        device=device)
-    model.load_state_dict(torch.load(os.path.join(args.save_path, 'model_saved.pt')))
+                        bilinear=args.bilinear, num_transformer_layer=args.num_transformer_layer,
+                        num_rnn_layer=args.num_rnn_layer, device=device)
+    model.load_state_dict(torch.load(os.path.join(args.save_path, 'model_saved2.pt')))
     model = model.to(device)
     model = model.eval()
 

@@ -2,13 +2,14 @@
 import os
 import time
 import pickle
-import torch_optimizer as optim
+import torch_optimizer as optim_lib
 
 # Import PyTorch
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.utils as torch_utils
+import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -66,13 +67,16 @@ def training(args):
                         num_rnn_layer=args.num_rnn_layer, device=device)
     # optimizer = Ralamb(params=filter(lambda p: p.requires_grad, model.parameters()), 
     #                    lr=args.max_lr, weight_decay=args.w_decay)
-    optimizer = optim.Lamb(params=model.parameters(), 
-                           lr=args.max_lr, weight_decay=args.w_decay)
+    # optimizer = optim_lib.Lamb(params=model.parameters(), 
+    #                        lr=args.max_lr, weight_decay=args.w_decay)
+    optimizer = optim.SGD(model.parameters(), lr=args.max_lr, momentum=args.momentum,
+                          weight_decay=args.w_decay)
     if args.n_warmup_epochs != 0:
         scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.n_warmup_epochs*len(dataloader_dict['train']), 
                                         t_total=len(dataloader_dict['train'])*args.num_epoch)
     else:
-        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10)
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, 
+                                      patience=len(dataloader_dict['train'])/1.5)
     model.to(device)
 
     #===================================#

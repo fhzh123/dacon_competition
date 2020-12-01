@@ -29,10 +29,23 @@ class Total_model(nn.Module):
         # Source embedding part
         # self.src_embedding = TransformerEmbedding(src_vocab_num, d_model, d_embedding, 
         #                                           pad_idx=self.pad_idx, max_len=self.max_len)
-        self.src_embedding = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
+        self.src_embedding_trs = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
         self.position_enc = PositionalEncoding(d_embedding, n_position=max_len)
         self.embedding_linear = nn.Linear(d_embedding, d_model)
         self.embedding_norm = nn.LayerNorm(d_model, eps=1e-6)
+
+        #===================================#
+        #==========GAP with linear==========#
+        #===================================#
+
+        self.src_embedding_gap = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
+        self.gap_linear1 = nn.Linear(d_embedding, d_model)
+        self.gap_linear2 = nn.Linear(d_model, d_embedding)
+        self.gap_linear3 = nn.Linear(d_embedding, author_num)
+
+        #===================================#
+        #============Transformer============#
+        #===================================#
 
         # Transformer
         self.transformer_encoder = Transformer_Encoder(d_model, dim_feedforward, 
@@ -46,6 +59,10 @@ class Total_model(nn.Module):
         self.trs_trg_output_linear2 = nn.Linear(d_embedding, author_num, bias=False)
         self.trs_trg_softmax = nn.Softmax(dim=1)
 
+        #===================================#
+        #=============RNN(GRU)==============#
+        #===================================#
+
         # GRU
         self.rnn_gru = rnn_GRU(src_vocab_num, author_num=author_num, d_embedding=d_embedding, 
                                d_model=d_model, n_layers=num_rnn_layer, pad_idx=pad_idx,
@@ -57,16 +74,27 @@ class Total_model(nn.Module):
         self.rnn_trg_output_linear2 = nn.Linear(d_embedding, author_num, bias=False)
         self.rnn_trg_softmax = nn.Softmax(dim=1)
 
+        #===================================#
+        #============Concatenate============#
+        #===================================#
+
         # Concat
         if bilinear:
             self.output_linear = nn.Bilinear(author_num, author_num, author_num)
         else:
-            self.output_linear = nn.Linear(author_num*2, author_num)
+            self.output_linear = nn.Linear(author_num*3, author_num)
 
     def forward(self, src_input_sentence):
 
         #===================================#
-        #============Transformer============#
+        #==========GAP with linear==========#
+        #===================================#
+
+        gap_out = self.src_embedding_gap(src_input_sentence).mean(dim=1)
+        gap_out = self.gap_linear3(self.gap_linear2(self.gap_linear1(gap_out)))
+
+        #===================================#
+        #=============RNN(GRU)==============#
         #===================================#
 
         rnn_out, *_ = self.rnn_gru(src_input_sentence)
@@ -80,7 +108,8 @@ class Total_model(nn.Module):
         src_mask = get_pad_mask(src_input_sentence, self.pad_idx)
 
         # encoder_out = self.src_embedding(src_input_sentence)#.transpose(0, 1)
-        encoder_out = self.embedding_norm(self.embedding_linear(self.position_enc(self.src_embedding(src_input_sentence))))
+        encoder_out = self.position_enc(self.src_embedding_trs(src_input_sentence))
+        encoder_out = self.embedding_norm(self.embedding_linear(encoder_out))
         encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
         # encoder_out = encoder_out.transpose(0, 1).contiguous()
 
@@ -94,6 +123,6 @@ class Total_model(nn.Module):
         if self.bilinear:
             logit = self.output_linear(rnn_out, encoder_out)
         else:
-            logit = self.output_linear(torch.cat((rnn_out, encoder_out), dim=1))
+            logit = self.output_linear(torch.cat((rnn_out, encoder_out, gap_out), dim=1))
 
         return logit
