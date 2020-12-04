@@ -15,7 +15,8 @@ def spm_encoding(title_list, content_list, spm_, args, total=True):
         return title_indices, content_indices
 
 class WarmupLinearSchedule(LambdaLR):
-    """ Linear warmup and then linear decay.
+    """ 
+        Linear warmup and then linear decay.
         Linearly increases learning rate from 0 to 1 over `warmup_steps` training steps.
         Linearly decreases learning rate from 1. to 0. over remaining `t_total - warmup_steps` steps.
     """

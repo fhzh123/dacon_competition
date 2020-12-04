@@ -3,3 +3,6 @@ __pycache__/*
 model/__pycache__/*
 preprocessing/*
 *.ipynb
+model/embedding/__pycache__/*
+model/modules/__pycache__/*
+
