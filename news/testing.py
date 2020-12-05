@@ -110,6 +110,7 @@ def testing(args):
 
     submission_dat = pd.concat([submission_dat, nan_content[['id', 'info']]])
     submission_dat = pd.merge(pd.DataFrame(submission_id), submission_dat, on='id', how='left') # Sorting
+    submission_dat['info'] = submission_dat['info'].apply(int)
 
     #===================================#
     #======Submission csv setting=======#

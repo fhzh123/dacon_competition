@@ -157,5 +157,20 @@ def training(args):
                     if not os.path.exists(args.save_path):
                         os.mkdir(args.save_path)
                     torch.save(model.state_dict(), 
-                               os.path.join(args.save_path, f'model_saved2.pt'))
+                               os.path.join(args.save_path, f'model_saved.pt'))
                     best_val_loss = val_loss
+
+    #===================================#
+    #============Result save============#
+    #===================================#
+
+    if not os.path.isfile(os.path.join(args.save_path, 'results.csv')):
+        column_list = ['date_time', 'best_val_loss', 'tokenizer', 'valid_percent', 'vocab_size',
+                       'num_epoch', 'batch_size', 'max_len', 'n_warmup_epoch', 'max_lr',
+                       'momentum', 'w_decay', 'dropout', 'grad_clip', 'model_type', 'bilinear',
+                       'num_transformer_layer', 'num_rnn_layer', 'd_model', 'd_embedding',
+                       'd_k', 'd_v', 'n_head', 'dim_feedforward']
+        pd.DataFrame(columns=column_list).to_csv(os.path.join(args.save_path, 'results.csv'), index=False)
+    
+    results_dat = pd.read_csv(os.path.join(args.save_path, 'results.csv'))
+    results_dat.concat()

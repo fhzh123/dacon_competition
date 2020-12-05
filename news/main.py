@@ -30,6 +30,8 @@ if __name__=='__main__':
     # Preprocessing setting
     parser.add_argument('--data_path', type=str, default='/HDD/kyohoon/dacon/news', help='Data path')
     parser.add_argument('--save_path', type=str, default='./preprocessing', help='Preprocessed data save path')
+    parser.add_argument('--tokenizer', type=str, default='unigram', 
+                        choices=['unigram', 'bpe', 'chr'], help='SentencePiece library model type; default is unigram')
     parser.add_argument('--valid_percent', type=float, default=0.2, help='Train / valid ratio setting; default is 0.2')
     parser.add_argument('--pad_idx', default=0, type=int, help='Pad index')
     parser.add_argument('--bos_idx', default=1, type=int, help='Index of bos token')

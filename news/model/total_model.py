@@ -97,16 +97,16 @@ class Total_model(nn.Module):
         #==========GAP with linear==========#
         #===================================#
 
-        gap_out = self.src_embedding_gap(src_content).mean(dim=1)
-        gap_out = self.gap_linear3(self.gap_linear2(self.gap_linear1(gap_out)))
+        # gap_out = self.src_embedding_gap(src_content).mean(dim=1)
+        # gap_out = self.gap_linear3(self.gap_linear2(self.gap_linear1(gap_out)))
 
-        #===================================#
-        #=============RNN(GRU)==============#
-        #===================================#
+        # #===================================#
+        # #=============RNN(GRU)==============#
+        # #===================================#
 
-        rnn_out, *_ = self.rnn_gru(src_content)
-        rnn_out = self.rnn_trg_output_norm(self.dropout(F.gelu(self.rnn_trg_output_linear(rnn_out))))
-        rnn_out = self.rnn_trg_output_linear2(rnn_out)
+        # rnn_out, *_ = self.rnn_gru(src_content)
+        # rnn_out = self.rnn_trg_output_norm(self.dropout(F.gelu(self.rnn_trg_output_linear(rnn_out))))
+        # rnn_out = self.rnn_trg_output_linear2(rnn_out)
         
         #===================================#
         #============Transformer============#
@@ -127,9 +127,10 @@ class Total_model(nn.Module):
         #============Concatenate============#
         #===================================#
 
-        if self.bilinear:
-            logit = self.output_linear(rnn_out, encoder_out)
-        else:
-            logit = self.output_linear(torch.cat((rnn_out, encoder_out, gap_out), dim=1))
+        # if self.bilinear:
+        #     logit = self.output_linear(rnn_out, encoder_out)
+        # else:
+        #     logit = self.output_linear(torch.cat((rnn_out, encoder_out, gap_out), dim=1))
+        logit = encoder_out
 
         return logit
