@@ -46,13 +46,13 @@ def testing(args):
     #===================================#
 
     print("Load model")
-    model = Total_model(vocab_num, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
+    model = Total_model(args.model_type, vocab_num, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
                         d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,
                         bilinear=args.bilinear, num_transformer_layer=args.num_transformer_layer,
                         num_rnn_layer=args.num_rnn_layer, device=device)
-    model.load_state_dict(torch.load(os.path.join(args.save_path, 'model_saved2.pt')))
+    model.load_state_dict(torch.load(os.path.join(args.model_path, 'model_saved.pt')))
     model = model.to(device)
     model = model.eval()
 

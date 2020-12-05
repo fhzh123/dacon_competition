@@ -30,6 +30,7 @@ if __name__=='__main__':
     # Preprocessing setting
     parser.add_argument('--data_path', type=str, default='/HDD/kyohoon/dacon/news', help='Data path')
     parser.add_argument('--save_path', type=str, default='./preprocessing', help='Preprocessed data save path')
+    parser.add_argument('--model_path', type=str, default='/HDD/kyohoon/dacon/news/model', help='Model path')
     parser.add_argument('--tokenizer', type=str, default='unigram', 
                         choices=['unigram', 'bpe', 'chr'], help='SentencePiece library model type; default is unigram')
     parser.add_argument('--valid_percent', type=float, default=0.2, help='Train / valid ratio setting; default is 0.2')
@@ -52,6 +53,8 @@ if __name__=='__main__':
     parser.add_argument('--grad_clip', type=int, default=5, help='Set gradient clipping; default is 5')
     parser.add_argument('--print_freq', type=int, default=300, help='Print train loss frequency; default is 300')
     # Model setting
+    parser.add_argument('--model_type', type=str, default='total', choices=['total', 'transformer', 'rnn', 'gap'],
+                        help='Model type; default is total')
     parser.add_argument('--bilinear', action='store_true')
     parser.add_argument('--num_transformer_layer', type=int, default=6, help='Number of transformer layer; default is 6')
     parser.add_argument('--num_rnn_layer', type=int, default=6, help='Number of rnn layer; default is 6')

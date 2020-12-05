@@ -58,7 +58,7 @@ def preprocessing(args):
     spm.SentencePieceProcessor()
     spm.SentencePieceTrainer.Train(
         f'--input={args.save_path}/text.txt --model_prefix={args.save_path}/m_text '
-        f'--vocab_size={args.vocab_size} --character_coverage=0.9995 --model_type={args.tokenizer}'
+        f'--vocab_size={args.vocab_size} --character_coverage=0.9995 --model_type={args.tokenizer} '
         f'--split_by_whitespace=true --pad_id={args.pad_idx} --unk_id={args.unk_idx} '
         f'--bos_id={args.bos_idx} --eos_id={args.eos_idx} --user_defined_symbols=[SEP]')
 

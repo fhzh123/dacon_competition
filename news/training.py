@@ -2,6 +2,7 @@
 import os
 import time
 import pickle
+import pandas as pd
 import torch_optimizer as optim_lib
 
 # Import PyTorch
@@ -68,7 +69,7 @@ def training(args):
     #===================================#
 
     print("Build model")
-    model = Total_model(vocab_num, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
+    model = Total_model(args.model_type, vocab_num, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
                         d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,
@@ -94,6 +95,9 @@ def training(args):
 
     best_val_loss = None
     freq = 0
+
+    if not os.path.exists(args.model_path):
+        os.mkdir(args.model_path)
 
     for e in range(args.num_epoch):
         start_time_e = time.time()
@@ -157,7 +161,7 @@ def training(args):
                     if not os.path.exists(args.save_path):
                         os.mkdir(args.save_path)
                     torch.save(model.state_dict(), 
-                               os.path.join(args.save_path, f'model_saved.pt'))
+                               os.path.join(args.model_path, f'model_saved.pt'))
                     best_val_loss = val_loss
 
     #===================================#
@@ -166,11 +170,37 @@ def training(args):
 
     if not os.path.isfile(os.path.join(args.save_path, 'results.csv')):
         column_list = ['date_time', 'best_val_loss', 'tokenizer', 'valid_percent', 'vocab_size',
-                       'num_epoch', 'batch_size', 'max_len', 'n_warmup_epoch', 'max_lr',
+                       'num_epoch', 'batch_size', 'max_len', 'n_warmup_epochs', 'max_lr',
                        'momentum', 'w_decay', 'dropout', 'grad_clip', 'model_type', 'bilinear',
                        'num_transformer_layer', 'num_rnn_layer', 'd_model', 'd_embedding',
                        'd_k', 'd_v', 'n_head', 'dim_feedforward']
         pd.DataFrame(columns=column_list).to_csv(os.path.join(args.save_path, 'results.csv'), index=False)
     
     results_dat = pd.read_csv(os.path.join(args.save_path, 'results.csv'))
-    results_dat.concat()
+    new_row = {
+        'date_time':datetime.datetime.today().strftime('%m/%d/%H:%M'),
+        'best_val_loss': best_val_loss,
+        'tokenizer': args.tokenizer,
+        'valid_percent': args.valid_percent,
+        'vocab_size': args.vocab_size,
+        'num_epoch': args.num_epoch,
+        'batch_size': args.batch_size,
+        'max_len': args.max_len,
+        'n_warmup_epochs': args.n_warmup_epochs,
+        'max_lr': args.max_lr,
+        'momentum': args.momentum,
+        'w_decay': args.w_decay,
+        'dropout': args.dropout,
+        'grad_clip': args.grad_clip,
+        'model_type': args.model_type,
+        'bilinear': args.bilinear,
+        'num_transformer_layer': args.num_transformer_layer,
+        'num_rnn_layer': args.num_rnn_layer,
+        'd_model': args.d_model,
+        'd_embedding': args.d_embedding,
+        'd_k': args.d_k,
+        'd_v': args.d_v,
+        'n_head': args.n_head,
+        'dim_feedforward': args.dim_feedforward
+    }
+    results_dat = results_dat.append(new_row, ignore_index=True)
