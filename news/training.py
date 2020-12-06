@@ -2,6 +2,7 @@
 import os
 import time
 import pickle
+import datetime
 import pandas as pd
 import torch_optimizer as optim_lib
 
@@ -204,3 +205,4 @@ def training(args):
         'dim_feedforward': args.dim_feedforward
     }
     results_dat = results_dat.append(new_row, ignore_index=True)
+    results_dat.to_csv(os.path.join(args.save_path, 'results.csv'), index=False)
