@@ -111,7 +111,7 @@ class Total_model(nn.Module):
         #===================================#
 
         if self.model_type in ['total', 'rnn']:
-            rnn_out, *_ = self.rnn_gru(src_content)
+            rnn_out, *_ = self.rnn_gru(src_total)
             rnn_out = self.rnn_trg_output_norm(self.dropout(F.gelu(self.rnn_trg_output_linear(rnn_out))))
             rnn_out = self.rnn_trg_output_linear2(rnn_out)
         

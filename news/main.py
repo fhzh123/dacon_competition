@@ -51,7 +51,6 @@ if __name__=='__main__':
     parser.add_argument('--w_decay', default=1e-5, type=float, help='Weight decay of optimizer; dafault is 1e-5')
     parser.add_argument('--dropout', type=float, default=0.2, help='Dropout ratio; default is 0.2')
     parser.add_argument('--grad_clip', type=int, default=5, help='Set gradient clipping; default is 5')
-    parser.add_argument('--print_freq', type=int, default=300, help='Print train loss frequency; default is 300')
     # Model setting
     parser.add_argument('--model_type', type=str, default='total', choices=['total', 'transformer', 'rnn', 'gap'],
                         help='Model type; default is total')
@@ -64,6 +63,9 @@ if __name__=='__main__':
     parser.add_argument('--d_v', type=int, default=64, help='Value vector dimension; default is 64')
     parser.add_argument('--n_head', type=int, default=8, help='Multihead count; default is 8')
     parser.add_argument('--dim_feedforward', type=int, default=2048, help='Feedforward layer Dimension; default is 2048')
+    # Print frequency
+    parser.add_argument('--print_freq', type=int, default=300, help='Print train loss frequency; default is 300')
+    parser.add_argument('--test_print_freq', type=int, default=300, help='Print test frequency; default is 300')
     args = parser.parse_args()
 
     main(args)

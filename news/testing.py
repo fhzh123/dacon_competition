@@ -78,7 +78,7 @@ def testing(args):
                 id_list = id_list + id_
                 info_list = info_list + predicted
 
-        if freq == 100 or i == 0 or i == len(test_dataloader):
+        if freq == args.test_print_freq or i == 0 or i == len(test_dataloader):
             spend_time = time.time() - start_time
             print('testing...[%d/%d] %2.2fmin spend' % 
                   (i, len(test_dataloader), spend_time / 60))
