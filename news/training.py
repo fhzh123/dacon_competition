@@ -19,7 +19,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 # Import custom modules
 from dataset import CustomDataset, PadCollate
 from model.total_model import Total_model
-from utils import WarmupLinearSchedule
+from utils import WarmupLinearSchedule, LabelSmoothingLoss
 # from model.optimizer import Ralamb, WarmupLinearSchedule
 
 def training(args):
@@ -88,6 +88,7 @@ def training(args):
     else:
         scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, 
                                       patience=len(dataloader_dict['train'])/1.5)
+    criterion = LabelSmoothingLoss(classes=2, smoothing=args.label_smoothing)
     model.to(device)
 
     #===================================#
@@ -124,10 +125,10 @@ def training(args):
                 # Model / Calculate loss
                 with torch.set_grad_enabled(phase == 'train'):
                     predicted_logit = model(total_src, title_src, content_src)
-                    loss = F.cross_entropy(predicted_logit, trg)
 
                     # If phase train, then backward loss and step optimizer and scheduler
                     if phase == 'train':
+                        loss = criterion(predicted_logit, trg)
                         loss.backward()
                         optimizer.step()
                         if args.n_warmup_epochs != 0:
@@ -146,6 +147,7 @@ def training(args):
                             freq = 0
                         freq += 1
                     if phase == 'valid':
+                        loss = F.cross_entropy(predicted_logit, trg)
                         val_loss += loss.item()
                         _, predicted = predicted_logit.max(dim=1)
                         accuracy = sum(predicted == trg).item() / predicted.size(0)
@@ -202,7 +204,8 @@ def training(args):
         'd_k': args.d_k,
         'd_v': args.d_v,
         'n_head': args.n_head,
-        'dim_feedforward': args.dim_feedforward
+        'dim_feedforward': args.dim_feedforward,
+        'label_smoothing': args.label_smoothing
     }
     results_dat = results_dat.append(new_row, ignore_index=True)
     results_dat.to_csv(os.path.join(args.save_path, 'results.csv'), index=False)
