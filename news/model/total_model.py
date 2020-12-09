@@ -11,7 +11,7 @@ from .modules.rnn_layers import rnn_GRU
 from .modules.transformer_utils import get_pad_mask
 
 class Total_model(nn.Module):
-    def __init__(self, model_type, src_vocab_num, trg_num=2, pad_idx=0, bos_idx=1, eos_idx=2, 
+    def __init__(self, model_type, src_vocab_num_dict, trg_num=2, pad_idx=0, bos_idx=1, eos_idx=2, 
                  max_len=300, d_model=512, d_embedding=256, n_head=8, d_k=64, d_v=64,
                  dim_feedforward=2048, dropout=0.1, bilinear=False,
                  num_transformer_layer=8, num_rnn_layer=6, device=None):
@@ -28,15 +28,15 @@ class Total_model(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         # Source embedding part
-        self.src_total_embedding = TotalEmbedding(src_vocab_num, d_model, d_embedding, 
-                                                  pad_idx=self.pad_idx, max_len=self.max_len,
-                                                  segment_embedding=True)
-        self.src_title_embedding = TotalEmbedding(src_vocab_num, d_model, d_embedding, 
-                                                  pad_idx=self.pad_idx, max_len=self.max_len,
-                                                  segment_embedding=False)
-        self.src_content_embedding = TotalEmbedding(src_vocab_num, d_model, d_embedding, 
-                                                    pad_idx=self.pad_idx, max_len=self.max_len,
-                                                    segment_embedding=False) 
+        self.src_spm_embedding = TotalEmbedding(src_vocab_num_dict['spm'], d_model, d_embedding, 
+                                                pad_idx=self.pad_idx, max_len=self.max_len,
+                                                segment_embedding=True)
+        self.src_khaiii_embedding = TotalEmbedding(src_vocab_num_dict['khaiii'], d_model, d_embedding, 
+                                                   pad_idx=self.pad_idx, max_len=self.max_len,
+                                                   segment_embedding=False)
+        self.src_konlpy_embedding = TotalEmbedding(src_vocab_num_dict['konlpy'], d_model, d_embedding, 
+                                                   pad_idx=self.pad_idx, max_len=self.max_len,
+                                                   segment_embedding=False) 
         # self.src_embedding_trs = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
         # self.position_enc = PositionalEncoding(d_embedding, n_position=max_len)
         # self.embedding_linear = nn.Linear(d_embedding, d_model)
@@ -48,7 +48,7 @@ class Total_model(nn.Module):
 
         if model_type in ['total', 'gap']:
             # Global average pooling
-            self.src_embedding_gap = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
+            self.src_embedding_gap = nn.Embedding(src_vocab_num_dict['spm'], d_embedding, padding_idx=pad_idx)
             self.gap_linear1 = nn.Linear(d_embedding, d_model)
             self.gap_linear2 = nn.Linear(d_model, d_embedding)
             self.gap_linear3 = nn.Linear(d_embedding, trg_num)
@@ -59,7 +59,7 @@ class Total_model(nn.Module):
 
         if model_type in ['total', 'rnn']:
             # RNN
-            self.rnn_gru = rnn_GRU(src_vocab_num, trg_num=trg_num, d_embedding=d_embedding, 
+            self.rnn_gru = rnn_GRU(src_vocab_num_dict['spm'], trg_num=trg_num, d_embedding=d_embedding, 
                                 d_model=d_model, n_layers=num_rnn_layer, pad_idx=pad_idx,
                                 dropout=dropout, embedding_dropout=dropout*0.5)
 
@@ -90,20 +90,23 @@ class Total_model(nn.Module):
         #============Concatenate============#
         #===================================#
 
-        # Concat
+        # Embedding concat
+        self.embedding_concat = nn.Linear(d_model*3, d_model)
+
+        # Logit concat
         if bilinear:
             self.output_linear = nn.Bilinear(trg_num, trg_num, trg_num)
         else:
             self.output_linear = nn.Linear(trg_num*3, trg_num)
 
-    def forward(self, src_total, src_title, src_content):
+    def forward(self, spm_src, khaiii_src, konlpy_src):
 
         #===================================#
         #==========GAP with linear==========#
         #===================================#
 
         if self.model_type in ['total', 'gap']:
-            gap_out = self.src_embedding_gap(src_content).mean(dim=1)
+            gap_out = self.src_embedding_gap(spm_src).mean(dim=1)
             gap_out = self.gap_linear3(self.gap_linear2(self.gap_linear1(gap_out)))
 
         #===================================#
@@ -111,7 +114,7 @@ class Total_model(nn.Module):
         #===================================#
 
         if self.model_type in ['total', 'rnn']:
-            rnn_out, *_ = self.rnn_gru(src_total)
+            rnn_out, *_ = self.rnn_gru(spm_src)
             rnn_out = self.rnn_trg_output_norm(self.dropout(F.gelu(self.rnn_trg_output_linear(rnn_out))))
             rnn_out = self.rnn_trg_output_linear2(rnn_out)
         
@@ -120,12 +123,41 @@ class Total_model(nn.Module):
         #===================================#
 
         if self.model_type in ['total', 'transformer']:
-            src_mask = get_pad_mask(src_total, self.pad_idx)
+            spm_src_mask = get_pad_mask(spm_src, self.pad_idx)
+            khaiii_src_mask = get_pad_mask(khaiii_src, self.pad_idx)
+            konlpy_src_mask = get_pad_mask(konlpy_src, self.pad_idx)
 
-            encoder_out = self.src_total_embedding(src_total)#.transpose(0, 1)
+            # SentencePiece input
+            spm_encoder_out = self.src_spm_embedding(spm_src)
+            # spm_encoder_out, *_ = self.transformer_encoder(spm_encoder_out, spm_src_mask)
+            # spm_encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(spm_encoder_out))))
+            # spm_encoder_out = self.trs_trg_output_linear2(spm_encoder_out)[:,0,:]
+
+            # Khaiii input
+            khaiii_encoder_out = self.src_spm_embedding(khaiii_src)
+            # khaiii_encoder_out, *_ = self.transformer_encoder(khaiii_encoder_out, khaiii_src_mask)
+            # khaiii_encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(khaiii_encoder_out))))
+            # khaiii_encoder_out = self.trs_trg_output_linear2(khaiii_encoder_out)[:,0,:]
+
+            # KoNLPy input
+            konlpy_encoder_out = self.src_spm_embedding(konlpy_src)
+            # konlpy_encoder_out, *_ = self.transformer_encoder(konlpy_encoder_out, konlpy_src_mask)
+            # konlpy_encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(konlpy_encoder_out))))
+            # konlpy_encoder_out = self.trs_trg_output_linear2(konlpy_encoder_out)[:,0,:]
+
+            # Concat
+            print(spm_encoder_out.size())
+            print(khaiii_encoder_out.size())
+            print(konlpy_encoder_out.size())
+            encoder_out = self.embedding_concat(torch.cat((spm_encoder_out, khaiii_encoder_out, konlpy_encoder_out), dim=1))
+
+            # Model forward
+            encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
+
+            # encoder_out = self.src_total_embedding(spm_src)#.transpose(0, 1)
             # encoder_out = self.position_enc(self.src_embedding_trs(src_input_sentence))
             # encoder_out = self.embedding_norm(self.embedding_linear(encoder_out))
-            encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
+            # encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
             # encoder_out = encoder_out.transpose(0, 1).contiguous()
 
             encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(encoder_out))))

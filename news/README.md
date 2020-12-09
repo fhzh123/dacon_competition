@@ -21,3 +21,10 @@ dacon link: https://dacon.io/competitions/official/235658/overview/
 아이디어:
 - Khaiii, mecab, 등 KoNLPy도입
 - Embedding에 noise추가
+
+## 12월 10일 02:00
+아이디어:
+- Embedding에 noise추가
+변경점:
+- KoNLPy, Khaiii 추가
+- 현재 수정중 (아직 안돌아감, 각 parser마다 인풋의 크기가 달라서 concat이 안됨)

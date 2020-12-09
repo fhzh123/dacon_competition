@@ -2,7 +2,7 @@ from konlpy.tag import Mecab, Okt, Hannanum, Kkma, Komoran
 from collections import Counter
 
 class konlpy_encoder:
-    def __init__(self, args, type='mecab'):
+    def __init__(self, args, konlpy_type='mecab'):
         # Token setting
         self.pad_idx = args.pad_idx
         self.bos_idx = args.bos_idx
@@ -17,16 +17,18 @@ class konlpy_encoder:
         self.vocab_size = args.vocab_size
 
         # API setting
-        if type.lower() == 'mecab':
+        if konlpy_type.lower() == 'mecab':
             self.api = Mecab()
-        if type.lower() == 'okt':
+        elif konlpy_type.lower() == 'okt':
             self.api = Okt()
-        if type.lower() == 'hannanum':
+        elif konlpy_type.lower() == 'hannanum':
             self.api = Hannanum()
-        if type.lower() == 'kkma':
+        elif konlpy_type.lower() == 'kkma':
             self.api = Kkma()
-        if type.lower() == 'komoran':
+        elif konlpy_type.lower() == 'komoran':
             self.api = Komoran()
+        else:
+            raise Exception('Not supported konlpy parser')
 
     def parsing_sentence(self, text_list):
 

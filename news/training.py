@@ -32,28 +32,36 @@ def training(args):
     print('Data Load & Setting!')
     with open(os.path.join(args.save_path, 'preprocessed.pkl'), 'rb') as f:
         data_ = pickle.load(f)
-        total_train_text_indices = data_['total_train_text_indices']
-        total_valid_text_indices = data_['total_valid_text_indices']
-        train_title_indices = data_['train_title_indices']
-        valid_title_indices = data_['valid_title_indices']
-        train_content_indices = data_['train_content_indices']
-        valid_content_indices = data_['valid_content_indices']
+        src_vocab_num_dict = dict()
+
+        total_train_text_indices_spm = data_['total_train_text_indices_spm']
+        total_valid_text_indices_spm = data_['total_valid_text_indices_spm']
+        total_train_text_indices_khaiii = data_['total_train_text_indices_khaiii']
+        total_valid_text_indices_khaiii = data_['total_valid_text_indices_khaiii']
+        total_train_text_indices_konlpy = data_['total_train_text_indices_konlpy']
+        total_valid_text_indices_konlpy = data_['total_valid_text_indices_konlpy']
         train_date_list = data_['train_date_list']
         valid_date_list = data_['valid_date_list']
         train_ord_list = data_['train_ord_list']
         valid_ord_list = data_['valid_ord_list']
         train_info_list = data_['train_info_list']
         valid_info_list = data_['valid_info_list']
-        vocab_list = data_['vocab_list']
-        vocab_num = len(vocab_list)
-        word2id = data_['word2id']
+        word2id_spm = data_['word2id_spm']
+        word2id_khaiii = data_['word2id_khaiii']
+        word2id_konlpy = data_['word2id_konlpy']
+
+        src_vocab_num_dict['spm'] = len(word2id_spm.keys())
+        src_vocab_num_dict['khaiii'] = len(word2id_khaiii.keys())
+        src_vocab_num_dict['konlpy'] = len(word2id_konlpy.keys())
         del data_
 
     dataset_dict = {
-        'train': CustomDataset(total_train_text_indices, train_title_indices, train_content_indices,
+        'train': CustomDataset(total_train_text_indices_spm, total_train_text_indices_khaiii, 
+                               total_train_text_indices_konlpy,
                                train_date_list, train_ord_list, train_info_list,
                                min_len=args.min_len, max_len=args.max_len),
-        'valid': CustomDataset(total_valid_text_indices, valid_title_indices, valid_content_indices,
+        'valid': CustomDataset(total_valid_text_indices_spm, total_valid_text_indices_khaiii, 
+                               total_valid_text_indices_konlpy,
                                valid_date_list, valid_ord_list, valid_info_list,
                                min_len=args.min_len, max_len=args.max_len),
     }
@@ -70,7 +78,7 @@ def training(args):
     #===================================#
 
     print("Build model")
-    model = Total_model(args.model_type, vocab_num, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
+    model = Total_model(args.model_type, src_vocab_num_dict, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
                         d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,

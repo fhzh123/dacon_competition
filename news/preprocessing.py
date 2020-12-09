@@ -93,7 +93,7 @@ def preprocessing(args):
     print('KoNLPy processing...')
 
     # 1) Initiating
-    konlpy_encoder_module = konlpy_encoder(args, type=args.konlpy_parser)
+    konlpy_encoder_module = konlpy_encoder(args, konlpy_type=args.konlpy_type)
 
     # 2) Parsing
     train_title_list_konlpy = konlpy_encoder_module.parsing_sentence(train_title_list)

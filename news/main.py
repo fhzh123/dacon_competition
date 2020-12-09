@@ -69,8 +69,8 @@ if __name__=='__main__':
     parser.add_argument('--n_head', type=int, default=8, help='Multihead count; default is 8')
     parser.add_argument('--dim_feedforward', type=int, default=2048, help='Feedforward layer Dimension; default is 2048')
     # Print frequency
-    parser.add_argument('--print_freq', type=int, default=300, help='Print train loss frequency; default is 300')
-    parser.add_argument('--test_print_freq', type=int, default=300, help='Print test frequency; default is 300')
+    parser.add_argument('--print_freq', type=int, default=1000, help='Print train loss frequency; default is 1000')
+    parser.add_argument('--test_print_freq', type=int, default=1000, help='Print test frequency; default is 1000')
     args = parser.parse_args()
 
     main(args)
