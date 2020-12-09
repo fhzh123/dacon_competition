@@ -38,7 +38,10 @@ class khaiii_encoder:
             lex_counter.update(text)
 
         word2id = ['<pad>', '<bos>', '<eos>', '<unk>','[SEP]']
-        min_count = sorted(list(lex_counter.values()), reverse=True)[self.vocab_size] + 1
+        if len(lex_counter.values()) >= self.vocab_size:
+            min_count = sorted(list(lex_counter.values()), reverse=True)[self.vocab_size] + 1
+        else:
+            min_count = 2
         word2id.extend([w for w, freq in lex_counter.items() if freq >= min_count and w != '[SEP]'])
         word2id = {w: i for i, w in enumerate(word2id)}
 
