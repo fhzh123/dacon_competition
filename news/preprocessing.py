@@ -4,10 +4,11 @@ import re
 import pickle
 import numpy as np
 import pandas as pd
-import sentencepiece as spm
 
 # Import custom modules
-from utils import spm_encoding
+from model.preprocessing.khaiii import khaiii_encoder
+from model.preprocessing.konlpy import konlpy_encoder
+from model.preprocessing.sentencepiece import sentencepiece_encoder
 
 def preprocessing(args):
 
@@ -49,49 +50,80 @@ def preprocessing(args):
     #===========SentencePiece===========#
     #===================================#
 
-    # 1) Make Korean text to train vocab
-    with open(f'{args.save_path}/text.txt', 'w') as f:
-        for text in train_title_list + train_content_list:
-            f.write(f'{text}\n')
+    # 1) Initiating
+    sentencepiece_encoder_module = sentencepiece_encoder(args)
 
-    # 2) SentencePiece model training
-    spm.SentencePieceProcessor()
-    spm.SentencePieceTrainer.Train(
-        f'--input={args.save_path}/text.txt --model_prefix={args.save_path}/m_text '
-        f'--vocab_size={args.vocab_size} --character_coverage=0.9995 --model_type={args.tokenizer} '
-        f'--split_by_whitespace=true --pad_id={args.pad_idx} --unk_id={args.unk_idx} '
-        f'--bos_id={args.bos_idx} --eos_id={args.eos_idx} --user_defined_symbols=[SEP]')
+    # 2) Training
+    word2id_spm = sentencepiece_encoder_module.training(train_title_list, train_content_list)
 
-    # 3) Korean vocabulrary setting
-    vocab_list = list()
-    with open(f'{args.save_path}/m_text.vocab') as f:
-        for line in f:
-            vocab_list.append(line[:-1].split('\t')[0])
-    word2id = {w: i for i, w in enumerate(vocab_list)}
+    # 3) Encoding
+    total_train_text_indices_spm, train_title_indices_spm, train_content_indices_spm = \
+        sentencepiece_encoder_module.encoding(train_title_list, train_content_list)
+    total_valid_text_indices_spm, valid_title_indices_spm, valid_content_indices_spm = \
+        sentencepiece_encoder_module.encoding(valid_title_list, valid_content_list)
 
-    # 4) SentencePiece model load
-    spm_ = spm.SentencePieceProcessor()
-    spm_.Load(f"{args.save_path}/m_text.model")
+    #===================================#
+    #==============Khaiii===============#
+    #===================================#
 
-    # 5) Korean parsing by SentencePiece model
-    total_train_text_indices = spm_encoding(train_title_list, train_content_list, 
-                                      spm_, args, total=True)
-    total_valid_text_indices = spm_encoding(valid_title_list, valid_content_list, 
-                                      spm_, args, total=True)
-    train_title_indices, train_content_indices = spm_encoding(train_title_list, train_content_list, 
-                                                              spm_, args, total=False)
-    valid_title_indices, valid_content_indices = spm_encoding(valid_title_list, valid_content_list, 
-                                                              spm_, args, total=False)
+    print('Khaiii processing...')
+
+    # 1) Initiating
+    khaiii_encoder_module = khaiii_encoder(args)
+
+    # 2) Parsing
+    train_title_list_khaiii = khaiii_encoder_module.parsing_sentence(train_title_list)
+    train_content_list_khaiii = khaiii_encoder_module.parsing_sentence(train_content_list)
+    valid_title_list_khaiii = khaiii_encoder_module.parsing_sentence(valid_title_list)
+    valid_content_list_khaiii = khaiii_encoder_module.parsing_sentence(valid_content_list)
+
+    # 3) Counter(word2id) setting
+    word2id_khaiii = khaiii_encoder_module.counter_update(train_title_list_khaiii, train_content_list_khaiii)
+
+    # 4) Encoding
+    total_train_text_indices_khaiii, train_title_indices_khaiii, train_content_indices_khaiii = \
+        khaiii_encoder_module.encode_sentence(train_title_list_khaiii, train_content_list_khaiii)
+    total_valid_text_indices_khaiii, valid_title_indices_khaiii, valid_content_indices_khaiii = \
+        khaiii_encoder_module.encode_sentence(valid_title_list_khaiii, valid_content_list_khaiii)
+
+    #===================================#
+    #==============KoNLPy===============#
+    #===================================#
+
+    print('KoNLPy processing...')
+
+    # 1) Initiating
+    konlpy_encoder_module = konlpy_encoder(args, type=args.konlpy_parser)
+
+    # 2) Parsing
+    train_title_list_konlpy = konlpy_encoder_module.parsing_sentence(train_title_list)
+    train_content_list_konlpy = konlpy_encoder_module.parsing_sentence(train_content_list)
+    valid_title_list_konlpy = konlpy_encoder_module.parsing_sentence(valid_title_list)
+    valid_content_list_konlpy = konlpy_encoder_module.parsing_sentence(valid_content_list)
+
+    # 3) Counter(word2id) setting
+    word2id_konlpy = konlpy_encoder_module.counter_update(train_title_list_konlpy, train_content_list_konlpy)
+
+    # 4) Encoding
+    total_train_text_indices_konlpy, train_title_indices_konlpy, train_content_indices_konlpy = \
+        konlpy_encoder_module.encode_sentence(train_title_list_konlpy, train_content_list_konlpy)
+    total_valid_text_indices_konlpy, valid_title_indices_konlpy, valid_content_indices_konlpy = \
+        konlpy_encoder_module.encode_sentence(valid_title_list_konlpy, valid_content_list_konlpy)
+
 
     #===================================#
     #========Test data processing=======#
     #===================================#
 
+    print('Test data processing...')
+
     test_dat = pd.read_csv(os.path.join(args.data_path, 'news_test.csv'))
-    total_test_text_indices = spm_encoding(test_dat['title'], test_dat['content'], 
-                                     spm_, args, total=True)
-    test_title_indices, test_content_indices = spm_encoding(test_dat['title'], test_dat['content'], 
-                                                            spm_, args, total=False)
+    total_test_text_indices_spm, test_title_indices_spm, test_content_indices_spm = \
+        sentencepiece_encoder_module.encoding(test_dat['title'], test_dat['content'])
+    total_test_text_indices_khaiii, test_title_indices_khaiii, test_content_indices_khaiii = \
+        khaiii_encoder_module.encode_sentence(test_dat['title'], test_dat['content'])
+    total_test_text_indices_konlpy, test_title_indices_konlpy, test_content_indices_konlpy = \
+        konlpy_encoder_module.encode_sentence(test_dat['title'], test_dat['content'])
 
     #===================================#
     #==============Saving===============#
@@ -100,30 +132,52 @@ def preprocessing(args):
     print('Parsed sentence saving...')
     with open(os.path.join(args.save_path, 'preprocessed.pkl'), 'wb') as f:
         pickle.dump({
-            'total_train_text_indices': total_train_text_indices,
-            'total_valid_text_indices': total_valid_text_indices,
-            'train_title_indices': train_title_indices,
-            'valid_title_indices': valid_title_indices,
-            'train_content_indices': train_content_indices,
-            'valid_content_indices': valid_content_indices,
+            'total_train_text_indices_spm': total_train_text_indices_spm,
+            'total_valid_text_indices_spm': total_valid_text_indices_spm,
+            'train_title_indices_spm': train_title_indices_spm,
+            'valid_title_indices_spm': valid_title_indices_spm,
+            'train_content_indices_spm': train_content_indices_spm,
+            'valid_content_indices_spm': valid_content_indices_spm,
+            'total_train_text_indices_khaiii': total_train_text_indices_khaiii,
+            'total_valid_text_indices_khaiii': total_valid_text_indices_khaiii,
+            'train_title_indices_khaiii': train_title_indices_khaiii,
+            'valid_title_indices_khaiii': valid_title_indices_khaiii,
+            'train_content_indices_khaiii': train_content_indices_khaiii,
+            'valid_content_indices_khaiii': valid_content_indices_khaiii,
+            'total_train_text_indices_konlpy': total_train_text_indices_konlpy,
+            'total_valid_text_indices_konlpy': total_valid_text_indices_konlpy,
+            'train_title_indices_konlpy': train_title_indices_konlpy,
+            'valid_title_indices_konlpy': valid_title_indices_konlpy,
+            'train_content_indices_konlpy': train_content_indices_konlpy,
+            'valid_content_indices_konlpy': valid_content_indices_konlpy,
             'train_date_list': train_date_list,
             'valid_date_list': valid_date_list,
             'train_ord_list': train_ord_list,
             'valid_ord_list': valid_ord_list,
             'train_info_list': train_info_list,
             'valid_info_list': valid_info_list,
-            'vocab_list': vocab_list,
-            'word2id': word2id
+            'word2id_spm': word2id_spm,
+            'word2id_khaiii': word2id_khaiii,
+            'word2id_konlpy': word2id_konlpy,
+            'konlpy_type': args.konlpy_type
         }, f)
 
     with open(os.path.join(args.save_path, 'test_preprocessed.pkl'), 'wb') as f:
         pickle.dump({
-            'total_test_text_indices': total_test_text_indices,
-            'test_title_indices': test_title_indices,
-            'test_content_indices': test_content_indices,
+            'total_test_text_indices_spm': total_test_text_indices_spm,
+            'test_title_indices_spm': test_title_indices_spm,
+            'test_content_indices_spm': test_content_indices_spm,
+            'total_test_text_indices_khaiii': total_test_text_indices_khaiii,
+            'test_title_indices_khaiii': test_title_indices_khaiii,
+            'test_content_indices_khaiii': test_content_indices_khaiii,
+            'total_test_text_indices_konlpy': total_test_text_indices_konlpy,
+            'test_title_indices_konlpy': test_title_indices_konlpy,
+            'test_content_indices_konlpy': test_content_indices_konlpy,
             'test_date_list': test_dat['date'],
             'test_ord_list': test_dat['ord'],
             'test_id_list': test_dat['id'],
-            'vocab_list': vocab_list,
-            'word2id': word2id
+            'word2id_spm': word2id_spm,
+            'word2id_khaiii': word2id_khaiii,
+            'word2id_konlpy': word2id_konlpy,
+            'konlpy_type': args.konlpy_type
         }, f)

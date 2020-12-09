@@ -1,23 +1,7 @@
-# Import modules
-import random
-import numpy as np
-
 # Import PyTorch
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import LambdaLR
-
-def spm_encoding(title_list, content_list, spm_, args, total=True):
-    if total:
-        return [[args.bos_idx] + spm_.EncodeAsIds(title) + [args.sep_idx] + \
-                spm_.EncodeAsIds(content) + [args.eos_idx] \
-                for title, content in zip(title_list, content_list)]
-    else:
-        title_indices = [[args.bos_idx] + spm_.EncodeAsIds(title) + [args.eos_idx] \
-                         for title in title_list]
-        content_indices = [[args.bos_idx] + spm_.EncodeAsIds(content) + [args.eos_idx] \
-                           for content in content_list]
-        return title_indices, content_indices
 
 class WarmupLinearSchedule(LambdaLR):
     """ 

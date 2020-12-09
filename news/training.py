@@ -130,12 +130,12 @@ def training(args):
                     if phase == 'train':
                         loss = criterion(predicted_logit, trg)
                         loss.backward()
+                        clip_grad_norm_(model.parameters(), args.grad_clip)
                         optimizer.step()
                         if args.n_warmup_epochs != 0:
                             scheduler.step()
                         else:
                             scheduler.step(loss)
-                        clip_grad_norm_(model.parameters(), args.grad_clip)
                         # Print loss value only training
                         if freq == args.print_freq or i == 0 or i == len(dataloader_dict['train']):
                             total_loss = loss.item()
