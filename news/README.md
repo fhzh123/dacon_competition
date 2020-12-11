@@ -28,3 +28,11 @@ dacon link: https://dacon.io/competitions/official/235658/overview/
 변경점:
 - KoNLPy, Khaiii 추가
 - 현재 수정중 (아직 안돌아감, 각 parser마다 인풋의 크기가 달라서 concat이 안됨)
+
+## 12월 12일 02:00
+아이디어:
+- 일부 토큰만 사용하는 것이 아닌 전체 토큰에 pooling 진행
+- LSTM도 진행
+- Word2Vec 학습
+변경점:
+- 이전에 수정한 KoNLPy, Khaiii에 대해서 학습 가능
