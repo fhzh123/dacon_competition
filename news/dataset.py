@@ -10,8 +10,10 @@ class CustomDataset(Dataset):
         for spm_src, khaiii_src, konlpy_src, date, order, trg_or_id in zip(
             spm_src_list, khaiii_src_list, konlpy_src_list, date_list, ord_list, trg_or_id_list
         ):
-            if min_len <= len(khaiii_src) <= max_len:
-                data.append((spm_src, khaiii_src, konlpy_src, date, order, trg_or_id))
+            if min_len <= len(spm_src) <= max_len:
+                if min_len <= len(khaiii_src) <= max_len:
+                    if min_len <= len(konlpy_src) <= max_len:
+                        data.append((spm_src, khaiii_src, konlpy_src, date, order, trg_or_id))
         
         self.data = data
         self.num_data = len(self.data)

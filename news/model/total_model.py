@@ -75,23 +75,38 @@ class Total_model(nn.Module):
 
         if model_type in ['total', 'transformer']:
             # Transformer
-            self.transformer_encoder = Transformer_Encoder(d_model, dim_feedforward, 
-                                                            n_layers=num_transformer_layer,
-                                                            n_head=n_head, d_k=d_k, d_v=d_v, 
-                                                            pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_spm = Transformer_Encoder(d_model, dim_feedforward, 
+                                                       n_layers=num_transformer_layer,
+                                                       n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                       pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_khaiii = Transformer_Encoder(d_model, dim_feedforward, 
+                                                          n_layers=num_transformer_layer,
+                                                          n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                          pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_konlpy = Transformer_Encoder(d_model, dim_feedforward, 
+                                                          n_layers=num_transformer_layer,
+                                                          n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                          pad_idx=pad_idx, dropout=dropout)
 
             # Transformer output part
-            self.trs_trg_output_linear = nn.Linear(d_model, d_embedding, bias=False)
-            self.trs_trg_output_norm = nn.LayerNorm(d_embedding)
-            self.trs_trg_output_linear2 = nn.Linear(d_embedding, trg_num, bias=False)
-            self.trs_trg_softmax = nn.Softmax(dim=1)
+            self.trs_trg_output_linear_spm = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_output_norm_spm = nn.LayerNorm(d_embedding)
+            self.trs_trg_output_linear2_spm = nn.Linear(d_embedding, trg_num, bias=False)
+
+            self.trs_trg_output_linear_khaiii = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_output_norm_khaiii = nn.LayerNorm(d_embedding)
+            self.trs_trg_output_linear2_khaiii = nn.Linear(d_embedding, trg_num, bias=False)
+
+            self.trs_trg_output_linear_konlpy = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_output_norm_konlpy = nn.LayerNorm(d_embedding)
+            self.trs_trg_output_linear2_konlpy = nn.Linear(d_embedding, trg_num, bias=False)
 
         #===================================#
         #============Concatenate============#
         #===================================#
 
         # Embedding concat
-        self.embedding_concat = nn.Linear(d_model*3, d_model)
+        self.embedding_concat_linear = nn.Linear(trg_num*3, trg_num)
 
         # Logit concat
         if bilinear:
@@ -129,30 +144,27 @@ class Total_model(nn.Module):
 
             # SentencePiece input
             spm_encoder_out = self.src_spm_embedding(spm_src)
-            # spm_encoder_out, *_ = self.transformer_encoder(spm_encoder_out, spm_src_mask)
-            # spm_encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(spm_encoder_out))))
-            # spm_encoder_out = self.trs_trg_output_linear2(spm_encoder_out)[:,0,:]
+            spm_encoder_out, *_ = self.trs_encoder_spm(spm_encoder_out, spm_src_mask)
+            spm_encoder_out = self.trs_trg_output_norm_spm(self.dropout(F.gelu(self.trs_trg_output_linear_spm(spm_encoder_out))))
+            spm_encoder_out = self.trs_trg_output_linear2_spm(spm_encoder_out)[:,0,:]
 
             # Khaiii input
             khaiii_encoder_out = self.src_spm_embedding(khaiii_src)
-            # khaiii_encoder_out, *_ = self.transformer_encoder(khaiii_encoder_out, khaiii_src_mask)
-            # khaiii_encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(khaiii_encoder_out))))
-            # khaiii_encoder_out = self.trs_trg_output_linear2(khaiii_encoder_out)[:,0,:]
+            khaiii_encoder_out, *_ = self.trs_encoder_khaiii(khaiii_encoder_out, khaiii_src_mask)
+            khaiii_encoder_out = self.trs_trg_output_norm_khaiii(self.dropout(F.gelu(self.trs_trg_output_linear_khaiii(khaiii_encoder_out))))
+            khaiii_encoder_out = self.trs_trg_output_linear2_khaiii(khaiii_encoder_out)[:,0,:]
 
             # KoNLPy input
             konlpy_encoder_out = self.src_spm_embedding(konlpy_src)
-            # konlpy_encoder_out, *_ = self.transformer_encoder(konlpy_encoder_out, konlpy_src_mask)
-            # konlpy_encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(konlpy_encoder_out))))
-            # konlpy_encoder_out = self.trs_trg_output_linear2(konlpy_encoder_out)[:,0,:]
+            konlpy_encoder_out, *_ = self.trs_encoder_konlpy(konlpy_encoder_out, konlpy_src_mask)
+            konlpy_encoder_out = self.trs_trg_output_norm_konlpy(self.dropout(F.gelu(self.trs_trg_output_linear_konlpy(konlpy_encoder_out))))
+            konlpy_encoder_out = self.trs_trg_output_linear2_konlpy(konlpy_encoder_out)[:,0,:]
 
             # Concat
-            print(spm_encoder_out.size())
-            print(khaiii_encoder_out.size())
-            print(konlpy_encoder_out.size())
-            encoder_out = self.embedding_concat(torch.cat((spm_encoder_out, khaiii_encoder_out, konlpy_encoder_out), dim=1))
+            encoder_out = self.embedding_concat_linear(torch.cat((spm_encoder_out, khaiii_encoder_out, konlpy_encoder_out), dim=1))
 
             # Model forward
-            encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
+            # encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
 
             # encoder_out = self.src_total_embedding(spm_src)#.transpose(0, 1)
             # encoder_out = self.position_enc(self.src_embedding_trs(src_input_sentence))
@@ -160,8 +172,8 @@ class Total_model(nn.Module):
             # encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
             # encoder_out = encoder_out.transpose(0, 1).contiguous()
 
-            encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(encoder_out))))
-            encoder_out = self.trs_trg_output_linear2(encoder_out)[:,0,:]
+            # encoder_out = self.trs_trg_output_norm(self.dropout(F.gelu(self.trs_trg_output_linear(encoder_out))))
+            # encoder_out = self.trs_trg_output_linear2(encoder_out)[:,0,:]
 
         #===================================#
         #============Concatenate============#
