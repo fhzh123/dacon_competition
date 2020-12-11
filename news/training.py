@@ -119,20 +119,20 @@ def training(args):
                 model.eval()
                 val_loss = 0
                 val_acc = 0
-            for i, (total_src, title_src, content_src, date, order, trg) in enumerate(dataloader_dict[phase]):
+            for i, (src_spm, src_khaiii, src_konlpy, date, order, trg) in enumerate(dataloader_dict[phase]):
 
                 # Optimizer setting
                 optimizer.zero_grad()
 
                 # Source, Target sentence setting
-                total_src = total_src.to(device)
-                title_src = title_src.to(device)
-                content_src = content_src.to(device)
+                src_spm = src_spm.to(device)
+                src_khaiii = src_khaiii.to(device)
+                src_konlpy = src_konlpy.to(device)
                 trg = trg.to(device)
 
                 # Model / Calculate loss
                 with torch.set_grad_enabled(phase == 'train'):
-                    predicted_logit = model(total_src, title_src, content_src)
+                    predicted_logit = model(src_spm, src_khaiii, src_konlpy)
 
                     # If phase train, then backward loss and step optimizer and scheduler
                     if phase == 'train':
@@ -191,7 +191,7 @@ def training(args):
     new_row = {
         'date_time':datetime.datetime.today().strftime('%m/%d/%H:%M'),
         'best_val_loss': best_val_loss,
-        'tokenizer': args.tokenizer,
+        'tokenizer': args.sentencepiece_tokenizer,
         'valid_percent': args.valid_percent,
         'vocab_size': args.vocab_size,
         'num_epoch': args.num_epoch,

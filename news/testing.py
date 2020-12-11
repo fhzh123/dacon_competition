@@ -23,18 +23,30 @@ def testing(args):
     print('Data Load & Setting!')
     with open(os.path.join(args.save_path, 'test_preprocessed.pkl'), 'rb') as f:
         data_ = pickle.load(f)
-        total_test_text_indices = data_['total_test_text_indices']
-        test_title_indices = data_['test_title_indices']
-        test_content_indices = data_['test_content_indices']
+        src_vocab_num_dict = dict()
+        
+        total_test_text_indices_spm = data_['total_test_text_indices_spm']
+        test_title_indices_spm = data_['test_title_indices_spm']
+        test_content_indices_spm = data_['test_content_indices_spm']
+        total_test_text_indices_khaiii = data_['total_test_text_indices_khaiii']
+        test_title_indices_khaiii = data_['test_title_indices_khaiii']
+        test_content_indices_khaiii = data_['test_content_indices_khaiii']
+        total_test_text_indices_konlpy = data_['total_test_text_indices_konlpy']
+        test_title_indices_konlpy = data_['test_title_indices_konlpy']
+        test_content_indices_konlpy = data_['test_content_indices_konlpy']
         test_date_list = data_['test_date_list']
         test_ord_list = data_['test_ord_list']
         test_id_list = data_['test_id_list']
-        vocab_list = data_['vocab_list']
-        vocab_num = len(vocab_list)
-        word2id = data_['word2id']
+        word2id_spm = data_['word2id_spm']
+        word2id_khaiii = data_['word2id_khaiii']
+        word2id_konlpy = data_['word2id_konlpy']
+        src_vocab_num_dict['spm'] = len(word2id_spm.keys())
+        src_vocab_num_dict['khaiii'] = len(word2id_khaiii.keys())
+        src_vocab_num_dict['konlpy'] = len(word2id_konlpy.keys())
         del data_
 
-    test_dataset = CustomDataset(total_test_text_indices, test_title_indices, test_content_indices,
+    test_dataset = CustomDataset(total_test_text_indices_spm, total_test_text_indices_khaiii, 
+                                 total_test_text_indices_konlpy,
                                  test_date_list, test_ord_list, test_id_list,
                                  min_len=args.min_len, max_len=args.max_len)
     test_dataloader = DataLoader(test_dataset, collate_fn=PadCollate(isTrain=False), drop_last=False,
@@ -46,7 +58,7 @@ def testing(args):
     #===================================#
 
     print("Load model")
-    model = Total_model(args.model_type, vocab_num, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
+    model = Total_model(args.model_type, src_vocab_num_dict, trg_num=2, pad_idx=args.pad_idx, bos_idx=args.bos_idx,
                         eos_idx=args.eos_idx, max_len=args.max_len, d_model=args.d_model,
                         d_embedding=args.d_embedding, n_head=args.n_head, d_k=args.d_k, d_v=args.d_v,
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,

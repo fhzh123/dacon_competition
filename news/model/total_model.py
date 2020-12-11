@@ -33,10 +33,10 @@ class Total_model(nn.Module):
                                                 segment_embedding=True)
         self.src_khaiii_embedding = TotalEmbedding(src_vocab_num_dict['khaiii'], d_model, d_embedding, 
                                                    pad_idx=self.pad_idx, max_len=self.max_len,
-                                                   segment_embedding=False)
+                                                   segment_embedding=True)
         self.src_konlpy_embedding = TotalEmbedding(src_vocab_num_dict['konlpy'], d_model, d_embedding, 
                                                    pad_idx=self.pad_idx, max_len=self.max_len,
-                                                   segment_embedding=False) 
+                                                   segment_embedding=True) 
         # self.src_embedding_trs = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
         # self.position_enc = PositionalEncoding(d_embedding, n_position=max_len)
         # self.embedding_linear = nn.Linear(d_embedding, d_model)
@@ -64,9 +64,9 @@ class Total_model(nn.Module):
                                 dropout=dropout, embedding_dropout=dropout*0.5)
 
             # RNN output part
-            self.rnn_trg_output_linear = nn.Linear(d_model, d_embedding, bias=False)
+            self.rnn_trg_output_linear = nn.Linear(d_model, d_embedding, bias=True)
             self.rnn_trg_output_norm = nn.LayerNorm(d_embedding)
-            self.rnn_trg_output_linear2 = nn.Linear(d_embedding, trg_num, bias=False)
+            self.rnn_trg_output_linear2 = nn.Linear(d_embedding, trg_num, bias=True)
             self.rnn_trg_softmax = nn.Softmax(dim=1)
 
         #===================================#
