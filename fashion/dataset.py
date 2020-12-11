@@ -1,9 +1,11 @@
 # Import modules
 import os
 import numpy as np
+from PIL import Image
 from pycocotools.coco import COCO
 
 # Import PyTorch
+import torch
 from torch.utils.data import Dataset
 
 class CustomDataset(Dataset):
