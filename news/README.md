@@ -36,3 +36,9 @@ dacon link: https://dacon.io/competitions/official/235658/overview/
 - Word2Vec 학습
 변경점:
 - 이전에 수정한 KoNLPy, Khaiii에 대해서 학습 가능
+
+## 12월 13일 03:00
+아이디어:
+- max pooling시 activation function 도입
+변경점:
+- 일부 토큰만 사용하지 않고 전체 토큰에 대해서 max pooling 진행
