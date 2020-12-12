@@ -145,7 +145,7 @@ def training(args):
                         else:
                             scheduler.step(loss)
                         # Print loss value only training
-                        if freq == args.print_freq or i == 0 or i == len(dataloader_dict['train']):
+                        if freq == args.print_freq or i == 0 or i == len(dataloader_dict['train'])-1:
                             total_loss = loss.item()
                             _, predicted = predicted_logit.max(dim=1)
                             accuracy = sum(predicted == trg).item() / predicted.size(0)
