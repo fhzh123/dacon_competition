@@ -48,7 +48,7 @@ def testing(args):
     test_dataset = CustomDataset(total_test_text_indices_spm, total_test_text_indices_khaiii, 
                                  total_test_text_indices_konlpy,
                                  test_date_list, test_ord_list, test_id_list,
-                                 min_len=args.min_len, max_len=args.max_len)
+                                 isTrain=False, min_len=args.min_len, max_len=args.max_len)
     test_dataloader = DataLoader(test_dataset, collate_fn=PadCollate(isTrain=False), drop_last=False,
                                  batch_size=args.batch_size, shuffle=False, pin_memory=True)
     print(f"Total number of testsets iterations - {len(test_dataset)}, {len(test_dataloader)}")
@@ -128,4 +128,4 @@ def testing(args):
     #======Submission csv setting=======#
     #===================================#
 
-    submission_dat.to_csv(os.path.join(args.save_path, 'submission.csv'), index=False, encoding='utf-8')
+    submission_dat.to_csv(os.path.join(args.results_path, 'submission.csv'), index=False, encoding='utf-8')

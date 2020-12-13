@@ -42,3 +42,7 @@ dacon link: https://dacon.io/competitions/official/235658/overview/
 - max pooling시 activation function 도입
 변경점:
 - 일부 토큰만 사용하지 않고 전체 토큰에 대해서 max pooling 진행
+
+## 12월 13일 13:00
+아이디어:
+- K-Fold validation, 등을 통해 train데이터에서 자꾸 틀리는 것만 모아두기

@@ -6,3 +6,4 @@ preprocessing/*
 model/embedding/__pycache__/*
 model/modules/__pycache__/*
 model/preprocessing/__pycache__/*
+results/*

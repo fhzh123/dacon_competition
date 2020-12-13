@@ -24,6 +24,7 @@ def preprocessing(args):
     total_title_list = train_dat['title'].tolist()
     total_content_list = train_dat['content'].tolist()
     total_ord_list = train_dat['ord'].tolist()
+    total_id_list = (train_dat['n_id'] + '_' + train_dat['ord'].astype(str)).tolist()
     total_info_list = train_dat['info'].tolist()
 
     data_len = len(train_dat)
@@ -34,12 +35,14 @@ def preprocessing(args):
     train_title_list = [total_title_list[i] for i in train_index]
     train_content_list = [total_content_list[i] for i in train_index]
     train_ord_list = [total_ord_list[i] for i in train_index]
+    train_id_list = [total_id_list[i] for i in train_index]
     train_info_list = [total_info_list[i] for i in train_index]
 
     valid_date_list = [total_date_list[i] for i in valid_index]
     valid_title_list = [total_title_list[i] for i in valid_index]
     valid_content_list = [total_content_list[i] for i in valid_index]
     valid_ord_list = [total_ord_list[i] for i in valid_index]
+    valid_id_list = [total_id_list[i] for i in valid_index]
     valid_info_list = [total_info_list[i] for i in valid_index]
 
     # 3) Preprocess path setting
@@ -154,6 +157,8 @@ def preprocessing(args):
             'valid_date_list': valid_date_list,
             'train_ord_list': train_ord_list,
             'valid_ord_list': valid_ord_list,
+            'train_id_list': train_id_list,
+            'valid_id_list': valid_id_list,
             'train_info_list': train_info_list,
             'valid_info_list': valid_info_list,
             'word2id_spm': word2id_spm,

@@ -30,6 +30,7 @@ if __name__=='__main__':
     # Preprocessing setting
     parser.add_argument('--data_path', type=str, default='/HDD/kyohoon/dacon/news', help='Data path')
     parser.add_argument('--save_path', type=str, default='./preprocessing', help='Preprocessed data save path')
+    parser.add_argument('--results_path', type=str, default='./results', help='Results save path')
     parser.add_argument('--model_path', type=str, default='/HDD/kyohoon/dacon/news/model', help='Model path')
     parser.add_argument('--sentencepiece_tokenizer', type=str, default='unigram', 
                         choices=['unigram', 'bpe', 'chr'], help='SentencePiece library model type; default is unigram')
