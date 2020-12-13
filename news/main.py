@@ -46,6 +46,7 @@ if __name__=='__main__':
     parser.add_argument('--sep_idx', default=4, type=int, help='Index of SEP token')
     parser.add_argument('--vocab_size', default=24000, type=int, help='Vocabulary size; default is 24000')
     # Training setting
+    parser.add_argument('--num_workers', default=4 ,type=int, help='CPU worker count; default is 4')
     parser.add_argument('--num_epoch', default=30, type=int, help='Epoch count; default is 30')
     parser.add_argument('--batch_size', default=48,  type=int, help='Batch size; default is 48')
     parser.add_argument('--min_len', default=4, type=int, help='Minumum length of sentences; default is 4')

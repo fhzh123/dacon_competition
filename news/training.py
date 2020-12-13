@@ -72,9 +72,9 @@ def training(args):
     }
     dataloader_dict = {
         'train': DataLoader(dataset_dict['train'], collate_fn=PadCollate(), drop_last=True,
-                            batch_size=args.batch_size, shuffle=True, pin_memory=True),
+                            batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, pin_memory=True),
         'valid': DataLoader(dataset_dict['valid'], collate_fn=PadCollate(), drop_last=True,
-                            batch_size=args.batch_size, shuffle=True, pin_memory=True)
+                            batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, pin_memory=True)
     }
     print(f'Total number of trainingsets  iterations - {len(dataset_dict["train"])}, {len(dataloader_dict["train"])}')
     print(f'{train_dat_num} data is exceptd.')

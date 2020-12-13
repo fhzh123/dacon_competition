@@ -50,7 +50,7 @@ def testing(args):
                                  test_date_list, test_ord_list, test_id_list,
                                  isTrain=False, min_len=args.min_len, max_len=args.max_len)
     test_dataloader = DataLoader(test_dataset, collate_fn=PadCollate(isTrain=False), drop_last=False,
-                                 batch_size=args.batch_size, shuffle=False, pin_memory=True)
+                                 batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, pin_memory=True)
     print(f"Total number of testsets iterations - {len(test_dataset)}, {len(test_dataloader)}")
 
     #===================================#
