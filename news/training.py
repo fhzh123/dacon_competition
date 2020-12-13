@@ -77,7 +77,7 @@ def training(args):
                             batch_size=args.batch_size, num_workers=args.num_workers, shuffle=True, pin_memory=True)
     }
     print(f'Total number of trainingsets  iterations - {len(dataset_dict["train"])}, {len(dataloader_dict["train"])}')
-    print(f'{train_dat_num} data is exceptd.')
+    print(f'{train_dat_num - len(dataset_dict["train"])} data is exceptd.')
 
     #===================================#
     #===========Model Setting===========#
