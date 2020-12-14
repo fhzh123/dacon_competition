@@ -30,13 +30,13 @@ class Total_model(nn.Module):
         # Source embedding part
         self.src_spm_embedding = TotalEmbedding(src_vocab_num_dict['spm'], d_model, d_embedding, 
                                                 pad_idx=self.pad_idx, max_len=self.max_len,
-                                                segment_embedding=True)
+                                                segment_embedding=False)
         self.src_khaiii_embedding = TotalEmbedding(src_vocab_num_dict['khaiii'], d_model, d_embedding, 
                                                    pad_idx=self.pad_idx, max_len=self.max_len,
-                                                   segment_embedding=True)
+                                                   segment_embedding=False)
         self.src_konlpy_embedding = TotalEmbedding(src_vocab_num_dict['konlpy'], d_model, d_embedding, 
                                                    pad_idx=self.pad_idx, max_len=self.max_len,
-                                                   segment_embedding=True) 
+                                                   segment_embedding=False) 
         # self.src_embedding_trs = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
         # self.position_enc = PositionalEncoding(d_embedding, n_position=max_len)
         # self.embedding_linear = nn.Linear(d_embedding, d_model)

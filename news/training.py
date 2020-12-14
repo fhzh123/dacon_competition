@@ -38,12 +38,18 @@ def training(args):
         data_ = pickle.load(f)
         src_vocab_num_dict = dict()
 
-        total_train_text_indices_spm = data_['total_train_text_indices_spm']
-        total_valid_text_indices_spm = data_['total_valid_text_indices_spm']
-        total_train_text_indices_khaiii = data_['total_train_text_indices_khaiii']
-        total_valid_text_indices_khaiii = data_['total_valid_text_indices_khaiii']
-        total_train_text_indices_konlpy = data_['total_train_text_indices_konlpy']
-        total_valid_text_indices_konlpy = data_['total_valid_text_indices_konlpy']
+        # total_train_text_indices_spm = data_['total_train_text_indices_spm']
+        # total_valid_text_indices_spm = data_['total_valid_text_indices_spm']
+        # total_train_text_indices_khaiii = data_['total_train_text_indices_khaiii']
+        # total_valid_text_indices_khaiii = data_['total_valid_text_indices_khaiii']
+        # total_train_text_indices_konlpy = data_['total_train_text_indices_konlpy']
+        # total_valid_text_indices_konlpy = data_['total_valid_text_indices_konlpy']
+        train_content_indices_spm = data_['train_content_indices_spm']
+        valid_content_indices_spm = data_['valid_content_indices_spm']
+        train_content_indices_khaiii = data_['train_content_indices_khaiii']
+        valid_content_indices_khaiii = data_['valid_content_indices_khaiii']
+        train_content_indices_konlpy = data_['train_content_indices_konlpy']
+        valid_content_indices_konlpy = data_['valid_content_indices_konlpy']
         train_date_list = data_['train_date_list']
         valid_date_list = data_['valid_date_list']
         train_ord_list = data_['train_ord_list']
@@ -62,12 +68,12 @@ def training(args):
         del data_
 
     dataset_dict = {
-        'train': CustomDataset(total_train_text_indices_spm, total_train_text_indices_khaiii, 
-                               total_train_text_indices_konlpy, train_date_list, 
+        'train': CustomDataset(train_content_indices_spm, train_content_indices_khaiii, 
+                               train_content_indices_konlpy, train_date_list, 
                                train_ord_list, train_id_list, train_info_list,
                                isTrain=True, min_len=args.min_len, max_len=args.max_len),
-        'valid': CustomDataset(total_valid_text_indices_spm, total_valid_text_indices_khaiii, 
-                               total_valid_text_indices_konlpy, valid_date_list, 
+        'valid': CustomDataset(valid_content_indices_spm, valid_content_indices_khaiii, 
+                               valid_content_indices_konlpy, valid_date_list, 
                                valid_ord_list, valid_id_list, valid_info_list,
                                isTrain=True, min_len=args.min_len, max_len=args.max_len),
     }
@@ -200,15 +206,21 @@ def training(args):
         os.mkdir(args.results_path)
 
     if not os.path.isfile(os.path.join(args.results_path, 'results.csv')):
-        column_list = ['date_time', 'best_val_loss', 'tokenizer', 'valid_percent', 'vocab_size',
-                    'num_epoch', 'batch_size', 'max_len', 'n_warmup_epochs', 'max_lr',
-                    'momentum', 'w_decay', 'dropout', 'grad_clip', 'model_type', 'bilinear',
-                    'num_transformer_layer', 'num_rnn_layer', 'd_model', 'd_embedding',
-                    'd_k', 'd_v', 'n_head', 'dim_feedforward']
-        pd.DataFrame(columns=column_list).to_csv(os.path.join(args.results_path, 'results.csv'), index=False)
-    
-    # 2) Model setting save
+        column_list_results = ['date_time', 'best_val_loss', 'tokenizer', 'valid_percent', 
+                               'vocab_size', 'num_epoch', 'batch_size', 'max_len', 'n_warmup_epochs', 
+                               'max_lr', 'momentum', 'w_decay', 'dropout', 'grad_clip', 'model_type', 
+                               'bilinear', 'num_transformer_layer', 'num_rnn_layer', 'd_model', 
+                               'd_embedding', 'd_k', 'd_v', 'n_head', 'dim_feedforward']
+        pd.DataFrame(columns=column_list_results).to_csv(os.path.join(args.results_path, 'results.csv'), index=False)
+
+    if not os.path.isfile(os.path.join(args.results_path, 'wrong_list.csv')):
+        column_list_wrong = ['date_time', 'id_', 'title', 'content', '0', '1', 'info']
+        pd.DataFrame(columns=column_list_wrong).to_csv(os.path.join(args.results_path, 'results.csv'), index=False)
+
     results_dat = pd.read_csv(os.path.join(args.results_path, 'results.csv'))
+    wrong_dat_total = pd.read_csv(os.path.join(args.results_path, 'wrong_list.csv'))
+
+    # 2) Model setting save
     new_row = {
         'date_time':datetime.datetime.today().strftime('%m/%d/%H:%M'),
         'best_val_loss': best_val_loss,
@@ -243,6 +255,10 @@ def training(args):
     train_dat['id_'] = train_dat['n_id'] + '_' + train_dat['ord'].astype(str)
 
     wrong_dat = pd.DataFrame(np.stack(wrong_logit_list))
+    wrong_dat['date_time'] = [datetime.datetime.today().strftime('%m/%d/%H:%M') for _ in range(len(wrong_dat))]
     wrong_dat['id_'] = wrong_id_list
     wrong_dat = wrong_dat.merge(train_dat[['id_', 'title', 'content', 'info']], on='id_')
-    wrong_dat.to_csv(os.path.join(args.results_path, 'wrong_list.csv'), index=False)
+    wrong_dat = wrong_dat[['date_time', 'id_', 'title', 'content', '0', '1', 'info']]
+
+    wrong_dat_total = pd.concat([wrong_dat_total, wrong_dat], axis=0)
+    wrong_dat_total.to_csv(os.path.join(args.results_path, 'wrong_list.csv'), index=False)

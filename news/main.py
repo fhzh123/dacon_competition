@@ -10,6 +10,9 @@ from testing import testing
 def main(args):
     start_time = time.time()
 
+    # if args.augmentation:
+    #     augmentation(args)
+
     if args.preprocessing:
         preprocessing(args)
 
@@ -27,6 +30,7 @@ if __name__=='__main__':
     parser.add_argument('--preprocessing', action='store_true')
     parser.add_argument('--training', action='store_true')
     parser.add_argument('--testing', action='store_true')
+    parser.add_argument('--augmentation', action='store_true')
     # Preprocessing setting
     parser.add_argument('--data_path', type=str, default='/HDD/kyohoon/dacon/news', help='Data path')
     parser.add_argument('--save_path', type=str, default='./preprocessing', help='Preprocessed data save path')
