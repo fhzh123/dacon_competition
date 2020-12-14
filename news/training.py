@@ -215,7 +215,7 @@ def training(args):
 
     if not os.path.isfile(os.path.join(args.results_path, 'wrong_list.csv')):
         column_list_wrong = ['date_time', 'id_', 'title', 'content', '0', '1', 'info']
-        pd.DataFrame(columns=column_list_wrong).to_csv(os.path.join(args.results_path, 'results.csv'), index=False)
+        pd.DataFrame(columns=column_list_wrong).to_csv(os.path.join(args.results_path, 'wrong_list.csv'), index=False)
 
     results_dat = pd.read_csv(os.path.join(args.results_path, 'results.csv'))
     wrong_dat_total = pd.read_csv(os.path.join(args.results_path, 'wrong_list.csv'))
