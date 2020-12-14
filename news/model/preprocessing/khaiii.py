@@ -24,9 +24,11 @@ class khaiii_encoder:
         parsing_list = list()
 
         for text in text_list:
+            parsing_text = list()
             for word_ in self.api.analyze(text):
                 for word in word_.morphs:
-                    parsing_list.append(word.lex)
+                    parsing_list.extend(word.lex)
+            parsing_list.append(parsing_text)
         
         return parsing_list
 
