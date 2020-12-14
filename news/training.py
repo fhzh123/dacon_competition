@@ -31,7 +31,7 @@ def training(args):
     #===================================#
 
     train_dat = pd.read_csv(os.path.join(args.data_path, 'news_train.csv'))
-    train_dat_num = len(train_dat)
+    train_dat_num = int(len(train_dat) * (1-args.valid_percent))
 
     print('Data Load & Setting!')
     with open(os.path.join(args.save_path, 'preprocessed.pkl'), 'rb') as f:

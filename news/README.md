@@ -46,3 +46,11 @@ dacon link: https://dacon.io/competitions/official/235658/overview/
 ## 12월 13일 13:00
 아이디어:
 - K-Fold validation, 등을 통해 train데이터에서 자꾸 틀리는 것만 모아두기
+
+## 12dnjf 14dlf 16:00
+아이디어:
+- Conditional BERT로 Augmentation 진행
+- 데이터 불균형 해소 필요
+변경점:
+- Khaiii가 제대로 parsing되지 않던거 수정
+- Print쪽 오류 수정
