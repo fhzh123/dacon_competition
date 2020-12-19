@@ -38,12 +38,12 @@ def training(args):
         data_ = pickle.load(f)
         src_vocab_num_dict = dict()
 
-        # total_train_text_indices_spm = data_['total_train_text_indices_spm']
-        # total_valid_text_indices_spm = data_['total_valid_text_indices_spm']
-        # total_train_text_indices_khaiii = data_['total_train_text_indices_khaiii']
-        # total_valid_text_indices_khaiii = data_['total_valid_text_indices_khaiii']
-        # total_train_text_indices_konlpy = data_['total_train_text_indices_konlpy']
-        # total_valid_text_indices_konlpy = data_['total_valid_text_indices_konlpy']
+        total_train_text_indices_spm = data_['total_train_text_indices_spm']
+        total_valid_text_indices_spm = data_['total_valid_text_indices_spm']
+        total_train_text_indices_khaiii = data_['total_train_text_indices_khaiii']
+        total_valid_text_indices_khaiii = data_['total_valid_text_indices_khaiii']
+        total_train_text_indices_konlpy = data_['total_train_text_indices_konlpy']
+        total_valid_text_indices_konlpy = data_['total_valid_text_indices_konlpy']
         train_content_indices_spm = data_['train_content_indices_spm']
         valid_content_indices_spm = data_['valid_content_indices_spm']
         train_content_indices_khaiii = data_['train_content_indices_khaiii']
