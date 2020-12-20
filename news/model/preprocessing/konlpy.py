@@ -1,8 +1,10 @@
-from konlpy.tag import Mecab, Okt, Hannanum, Kkma, Komoran
+# Import modules
+from tqdm import tqdm
 from collections import Counter
+from konlpy.tag import Mecab, Okt, Hannanum, Kkma, Komoran
 
 class konlpy_encoder:
-    def __init__(self, args, konlpy_type='mecab'):
+    def __init__(self, args, konlpy_type='mecab', verbose=True):
         # Token setting
         self.pad_idx = args.pad_idx
         self.bos_idx = args.bos_idx
@@ -15,6 +17,7 @@ class konlpy_encoder:
 
         # Training setting
         self.vocab_size = args.vocab_size
+        self.verbose = verbose
 
         # API setting
         if konlpy_type.lower() == 'mecab':
@@ -41,9 +44,16 @@ class konlpy_encoder:
 
     def counter_update(self, title_parsed_list, content_parsed_list):
 
+        print('KoNLPy word counting...')
+
         lex_counter = Counter()
 
-        for text in title_parsed_list + content_parsed_list:
+        if self.verbose:
+            p_bar = tqdm(title_parsed_list + content_parsed_list)
+        else:
+            p_bar = title_parsed_list + content_parsed_list
+            
+        for text in p_bar:
             lex_counter.update(text)
 
         word2id = ['<pad>', '<bos>', '<eos>', '<unk>','[SEP]']
@@ -57,13 +67,22 @@ class konlpy_encoder:
 
     def encode_sentence(self, parsing_title_list, parsing_content_list):
 
+        print('KoNLPy encoding...')
+
+        if self.verbose:
+            p_bar_title = tqdm(parsing_title_list)
+            p_bar_content = tqdm(parsing_content_list)
+        else:
+            p_bar_title = parsing_title_list
+            p_bar_content = parsing_content_list
+
         title_indices = [
             [self.bos_idx] + [self.word2id.get(w, self.unk_idx) for w in title] + [self.eos_idx] \
-                for title in parsing_title_list
+                for title in p_bar_title
         ]
         content_indices = [
-            [self.bos_idx] + [self.word2id.get(w, self.unk_idx) for w in title] + [self.eos_idx] \
-                for title in parsing_content_list
+            [self.bos_idx] + [self.word2id.get(w, self.unk_idx) for w in content] + [self.eos_idx] \
+                for content in p_bar_content
         ]
         total_indices =[
             title_[:-1] + [self.sep_idx] + content_[1:] \

@@ -144,7 +144,7 @@ class Total_model(nn.Module):
             konlpy_src_mask = get_pad_mask(konlpy_src, self.pad_idx)
 
             # SentencePiece input
-            spm_encoder_out = self.src_spm_embedding(spm_src)
+            spm_encoder_out = self.src_total_spm_embedding(spm_src)
             spm_encoder_out, *_ = self.trs_encoder_spm(spm_encoder_out, spm_src_mask)
             spm_encoder_out = self.trs_trg_output_norm_spm(self.dropout(F.gelu(self.trs_trg_output_linear_spm(spm_encoder_out))))
             spm_encoder_out = F.max_pool1d(spm_encoder_out.permute(0,2,1), spm_encoder_out.size(1)).squeeze(2)
