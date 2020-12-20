@@ -28,9 +28,9 @@ class Total_model(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
         # Source embedding part
-        self.src_spm_embedding = TotalEmbedding(src_vocab_num_dict['spm'], d_model, d_embedding, 
-                                                pad_idx=self.pad_idx, max_len=self.max_len,
-                                                segment_embedding=False)
+        self.src_total_spm_embedding = TotalEmbedding(src_vocab_num_dict['spm'], d_model, d_embedding, 
+                                                      pad_idx=self.pad_idx, max_len=self.max_len,
+                                                      segment_embedding=False)
         self.src_khaiii_embedding = TotalEmbedding(src_vocab_num_dict['khaiii'], d_model, d_embedding, 
                                                    pad_idx=self.pad_idx, max_len=self.max_len,
                                                    segment_embedding=False)
@@ -151,14 +151,14 @@ class Total_model(nn.Module):
             # spm_encoder_out = self.trs_trg_output_linear2_spm(spm_encoder_out)[:,0,:]
 
             # Khaiii input
-            khaiii_encoder_out = self.src_spm_embedding(khaiii_src)
+            khaiii_encoder_out = self.src_khaiii_embedding(khaiii_src)
             khaiii_encoder_out, *_ = self.trs_encoder_khaiii(khaiii_encoder_out, khaiii_src_mask)
             khaiii_encoder_out = self.trs_trg_output_norm_khaiii(self.dropout(F.gelu(self.trs_trg_output_linear_khaiii(khaiii_encoder_out))))
             khaiii_encoder_out = F.max_pool1d(khaiii_encoder_out.permute(0,2,1), khaiii_encoder_out.size(1)).squeeze(2)
             # khaiii_encoder_out = self.trs_trg_output_linear2_khaiii(khaiii_encoder_out)[:,0,:]
 
             # KoNLPy input
-            konlpy_encoder_out = self.src_spm_embedding(konlpy_src)
+            konlpy_encoder_out = self.src_konlpy_embedding(konlpy_src)
             konlpy_encoder_out, *_ = self.trs_encoder_konlpy(konlpy_encoder_out, konlpy_src_mask)
             konlpy_encoder_out = self.trs_trg_output_norm_konlpy(self.dropout(F.gelu(self.trs_trg_output_linear_konlpy(konlpy_encoder_out))))
             konlpy_encoder_out = F.max_pool1d(konlpy_encoder_out.permute(0,2,1), konlpy_encoder_out.size(1)).squeeze(2)
