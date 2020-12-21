@@ -68,11 +68,15 @@ def training(args):
         del data_
 
     dataset_dict = {
-        'train': CustomDataset(train_content_indices_spm, train_content_indices_khaiii, 
+        'train': CustomDataset(total_train_text_indices_spm, total_train_text_indices_khaiii, 
+                               total_train_text_indices_konlpy,
+                               train_content_indices_spm, train_content_indices_khaiii, 
                                train_content_indices_konlpy, train_date_list, 
                                train_ord_list, train_id_list, train_info_list,
                                isTrain=True, min_len=args.min_len, max_len=args.max_len),
-        'valid': CustomDataset(valid_content_indices_spm, valid_content_indices_khaiii, 
+        'valid': CustomDataset(total_valid_text_indices_spm, total_valid_text_indices_khaiii, 
+                               total_valid_text_indices_konlpy,
+                               valid_content_indices_spm, valid_content_indices_khaiii, 
                                valid_content_indices_konlpy, valid_date_list, 
                                valid_ord_list, valid_id_list, valid_info_list,
                                isTrain=True, min_len=args.min_len, max_len=args.max_len),
@@ -133,12 +137,15 @@ def training(args):
                 val_loss = 0
                 val_acc = 0
                 false_id_list, false_logit_list = list(), list()
-            for i, (src_spm, src_khaiii, src_konlpy, date, order, id_, trg) in enumerate(dataloader_dict[phase]):
+            for i, (total_src_spm, total_src_khaiii, total_src_konlpy, src_spm, src_khaiii, src_konlpy, date, order, id_, trg) in enumerate(dataloader_dict[phase]):
 
                 # Optimizer setting
                 optimizer.zero_grad()
 
                 # Source, Target sentence setting
+                total_src_spm = total_src_spm.to(device)
+                total_src_khaiii = total_src_khaiii.to(device)
+                total_src_konlpy = total_src_konlpy.to(device)
                 src_spm = src_spm.to(device)
                 src_khaiii = src_khaiii.to(device)
                 src_konlpy = src_konlpy.to(device)
@@ -146,7 +153,7 @@ def training(args):
 
                 # Model / Calculate loss
                 with torch.set_grad_enabled(phase == 'train'):
-                    predicted_logit = model(src_spm, src_khaiii, src_konlpy)
+                    predicted_logit = model(total_src_spm, total_src_khaiii, total_src_konlpy, src_spm, src_khaiii, src_konlpy)
 
                     # If phase train, then backward loss and step optimizer and scheduler
                     if phase == 'train':

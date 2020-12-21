@@ -121,6 +121,20 @@ class Total_model(nn.Module):
                                                                pad_idx=pad_idx, dropout=dropout)
 
             # Transformer output part
+            # 1) Total
+            self.trs_trg_total_output_linear_spm = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_total_output_norm_spm = nn.LayerNorm(d_embedding)
+            self.trs_trg_total_output_linear2_spm = nn.Linear(d_embedding, trg_num, bias=False)
+
+            self.trs_trg_total_output_linear_khaiii = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_total_output_norm_khaiii = nn.LayerNorm(d_embedding)
+            self.trs_trg_total_output_linear2_khaiii = nn.Linear(d_embedding, trg_num, bias=False)
+
+            self.trs_trg_total_output_linear_konlpy = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_total_output_norm_konlpy = nn.LayerNorm(d_embedding)
+            self.trs_trg_total_output_linear2_konlpy = nn.Linear(d_embedding, trg_num, bias=False)
+
+            # 2) Content only
             self.trs_trg_output_linear_spm = nn.Linear(d_model, d_embedding, bias=False)
             self.trs_trg_output_norm_spm = nn.LayerNorm(d_embedding)
             self.trs_trg_output_linear2_spm = nn.Linear(d_embedding, trg_num, bias=False)
@@ -138,16 +152,20 @@ class Total_model(nn.Module):
         #===================================#
 
         # Embedding concat
-        self.embedding_concat_linear = nn.Linear(d_embedding*3, d_embedding)
+        self.embedding_concat_total_linear = nn.Linear(d_embedding*3, d_embedding)
         self.trg_output_total_linear = nn.Linear(d_embedding, trg_num)
+        self.embedding_concat_cont_linear = nn.Linear(d_embedding*3, d_embedding)
+        self.trg_output_cont_linear = nn.Linear(d_embedding, trg_num)
 
         # Logit concat
         if bilinear:
             self.output_linear = nn.Bilinear(trg_num, trg_num, trg_num)
         else:
-            self.output_linear = nn.Linear(trg_num*3, trg_num)
+            self.output_linear1 = nn.Linear(trg_num*5, trg_num*3)
+            self.output_linear2 = nn.Linear(trg_num*3, trg_num)
 
-    def forward(self, spm_src, khaiii_src, konlpy_src):
+    def forward(self, spm_total_src, khaiii_total_src, konlpy_total_src,
+                spm_src, khaiii_src, konlpy_src):
 
         #===================================#
         #==========GAP with linear==========#
@@ -182,31 +200,37 @@ class Total_model(nn.Module):
             khaiii_src_mask = get_pad_mask(khaiii_src, self.pad_idx)
             konlpy_src_mask = get_pad_mask(konlpy_src, self.pad_idx)
 
-            # #=====Total=====#
-            # # SentencePiece input
-            # spm_encoder_out = self.src_cont_spm_embedding(spm_src)
-            # spm_encoder_out, *_ = self.trs_encoder_spm_cont(spm_encoder_out, spm_src_mask)
-            # spm_encoder_out = self.trs_trg_output_norm_spm(self.dropout(F.gelu(self.trs_trg_output_linear_spm(spm_encoder_out))))
-            # spm_encoder_out = F.max_pool1d(spm_encoder_out.permute(0,2,1), spm_encoder_out.size(1)).squeeze(2)
-            # # spm_encoder_out = self.trs_trg_output_linear2_spm(spm_encoder_out)[:,0,:]
+            spm_src_mask_total = get_pad_mask(spm_total_src, self.pad_idx)
+            khaiii_src_mask_total = get_pad_mask(khaiii_total_src, self.pad_idx)
+            konlpy_src_mask_total = get_pad_mask(konlpy_total_src, self.pad_idx)
 
-            # # Khaiii input
-            # khaiii_encoder_out = self.src_cont_khaiii_embedding(khaiii_src)
-            # khaiii_encoder_out, *_ = self.trs_encoder_khaiii_cont(khaiii_encoder_out, khaiii_src_mask)
-            # khaiii_encoder_out = self.trs_trg_output_norm_khaiii(self.dropout(F.gelu(self.trs_trg_output_linear_khaiii(khaiii_encoder_out))))
-            # khaiii_encoder_out = F.max_pool1d(khaiii_encoder_out.permute(0,2,1), khaiii_encoder_out.size(1)).squeeze(2)
-            # # khaiii_encoder_out = self.trs_trg_output_linear2_khaiii(khaiii_encoder_out)[:,0,:]
+            #=====Total=====#
+            # SentencePiece input
+            spm_encoder_out_total = self.src_total_spm_embedding(spm_total_src)
+            spm_encoder_out_total, *_ = self.trs_encoder_spm_total(spm_encoder_out_total, spm_src_mask_total)
+            spm_encoder_out_total = self.trs_trg_total_output_norm_spm(self.dropout(F.gelu(self.trs_trg_total_output_linear_spm(spm_encoder_out_total))))
+            spm_encoder_out_total = F.max_pool1d(spm_encoder_out_total.permute(0,2,1), spm_encoder_out_total.size(1)).squeeze(2)
+            # spm_encoder_out = self.trs_trg_output_linear2_spm(spm_encoder_out)[:,0,:]
 
-            # # KoNLPy input
-            # konlpy_encoder_out = self.src_cont_konlpy_embedding(konlpy_src)
-            # konlpy_encoder_out, *_ = self.trs_encoder_konlpy_cont(konlpy_encoder_out, konlpy_src_mask)
-            # konlpy_encoder_out = self.trs_trg_output_norm_konlpy(self.dropout(F.gelu(self.trs_trg_output_linear_konlpy(konlpy_encoder_out))))
-            # konlpy_encoder_out = F.max_pool1d(konlpy_encoder_out.permute(0,2,1), konlpy_encoder_out.size(1)).squeeze(2)
-            # # konlpy_encoder_out = self.trs_trg_output_linear2_konlpy(konlpy_encoder_out)[:,0,:]
+            # Khaiii input
+            khaiii_encoder_out_total = self.src_total_khaiii_embedding(khaiii_total_src)
+            khaiii_encoder_out_total, *_ = self.trs_encoder_khaiii_total(khaiii_encoder_out_total, khaiii_src_mask_total)
+            khaiii_encoder_out_total = self.trs_trg_total_output_norm_khaiii(self.dropout(F.gelu(self.trs_trg_total_output_linear_khaiii(khaiii_encoder_out_total))))
+            khaiii_encoder_out_total = F.max_pool1d(khaiii_encoder_out_total.permute(0,2,1), khaiii_encoder_out_total.size(1)).squeeze(2)
+            # khaiii_encoder_out = self.trs_trg_output_linear2_khaiii(khaiii_encoder_out)[:,0,:]
 
-            # # Concat
-            # encoder_out = self.embedding_concat_linear(torch.cat((spm_encoder_out, khaiii_encoder_out, konlpy_encoder_out), dim=1))
-            # encoder_out = self.trg_output_total_linear(encoder_out)
+            # KoNLPy input
+            konlpy_encoder_out_total = self.src_total_konlpy_embedding(konlpy_total_src)
+            konlpy_encoder_out_total, *_ = self.trs_encoder_konlpy_total(konlpy_encoder_out_total, konlpy_src_mask_total)
+            konlpy_encoder_out_total = self.trs_trg_total_output_norm_konlpy(self.dropout(F.gelu(self.trs_trg_total_output_linear_konlpy(konlpy_encoder_out_total))))
+            konlpy_encoder_out_total = F.max_pool1d(konlpy_encoder_out_total.permute(0,2,1), konlpy_encoder_out_total.size(1)).squeeze(2)
+            # konlpy_encoder_out = self.trs_trg_output_linear2_konlpy(konlpy_encoder_out)[:,0,:]
+
+            # Concat
+            encoder_out_total = self.embedding_concat_total_linear(torch.cat((spm_encoder_out_total, 
+                                                                              khaiii_encoder_out_total, 
+                                                                              konlpy_encoder_out_total), dim=1))
+            encoder_out_total = self.trg_output_total_linear(encoder_out_total)
 
             #=====Content only=====#
             # SentencePiece input
@@ -231,8 +255,8 @@ class Total_model(nn.Module):
             # konlpy_encoder_out = self.trs_trg_output_linear2_konlpy(konlpy_encoder_out)[:,0,:]
 
             # Concat
-            encoder_out = self.embedding_concat_linear(torch.cat((spm_encoder_out, khaiii_encoder_out, konlpy_encoder_out), dim=1))
-            encoder_out = self.trg_output_total_linear(encoder_out)
+            encoder_out = self.embedding_concat_cont_linear(torch.cat((spm_encoder_out, khaiii_encoder_out, konlpy_encoder_out), dim=1))
+            encoder_out = self.trg_output_cont_linear(encoder_out)
 
             # Model forward
             # encoder_out, *_ = self.transformer_encoder(encoder_out, src_mask)
@@ -254,7 +278,8 @@ class Total_model(nn.Module):
             if self.bilinear:
                 logit = self.output_linear(rnn_out, encoder_out)
             else:
-                logit = self.output_linear(torch.cat((gru_out, encoder_out, gap_out), dim=1))
+                total_concat = torch.cat((gru_out, lstm_out, encoder_out, gap_out, encoder_out_total), dim=1)
+                logit = self.output_linear2(F.gelu(self.output_linear1(total_concat)))
 
         elif self.model_type == 'gap':
             logit = gap_out

@@ -1,31 +1,37 @@
 # Import Module
 
+# Import PyTorch
 import torch
 from torch.utils.data.dataset import Dataset
 
 class CustomDataset(Dataset):
-    def __init__(self, spm_src_list, khaiii_src_list, konlpy_src_list, 
+    def __init__(self, spm_src_total_list, khaiii_src_total_list, konlpy_src_total_list,
+                 spm_src_list, khaiii_src_list, konlpy_src_list, 
                  date_list, ord_list, id_list, trg_list=None, isTrain=True,
                  min_len=4, max_len=999):
         data = list()
         if isTrain:
-            for spm_src, khaiii_src, konlpy_src, date, order, id_, trg in zip(
+            for spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_, trg in zip(
+                spm_src_total_list, khaiii_src_total_list, konlpy_src_total_list, 
                 spm_src_list, khaiii_src_list, konlpy_src_list, date_list, 
                 ord_list, id_list, trg_list
             ):
                 if min_len <= len(spm_src) <= max_len:
                     if min_len <= len(khaiii_src) <= max_len:
                         if min_len <= len(konlpy_src) <= max_len:
-                            data.append((spm_src, khaiii_src, konlpy_src, date, order, id_, trg))
+                            data.append((spm_total_src, khaiii_total_src, konlpy_total_src,
+                                         spm_src, khaiii_src, konlpy_src, date, order, id_, trg))
         else:
-            for spm_src, khaiii_src, konlpy_src, date, order, id_ in zip(
+            for spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_ in zip(
+                spm_src_total_list, khaiii_src_total_list, konlpy_src_total_list,
                 spm_src_list, khaiii_src_list, konlpy_src_list, date_list, 
                 ord_list, id_list
             ):
                 if min_len <= len(spm_src) <= max_len:
                     if min_len <= len(khaiii_src) <= max_len:
                         if min_len <= len(konlpy_src) <= max_len:
-                            data.append((spm_src, khaiii_src, konlpy_src, date, order, id_))
+                            data.append((spm_total_src, khaiii_total_src, konlpy_total_src, 
+                                         spm_src, khaiii_src, konlpy_src, date, order, id_))
         
         self.data = data
         self.isTrain = isTrain
@@ -33,11 +39,11 @@ class CustomDataset(Dataset):
         
     def __getitem__(self, index):
         if self.isTrain:
-            spm_src, khaiii_src, konlpy_src, date, order, id_, trg = self.data[index]
-            return spm_src, khaiii_src, konlpy_src, date, order, id_, trg
+            spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_, trg = self.data[index]
+            return spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_, trg
         else:
-            spm_src, khaiii_src, konlpy_src, date, order, id_ = self.data[index]
-            return spm_src, khaiii_src, konlpy_src, date, order, id_
+            spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_ = self.data[index]
+            return spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_
     
     def __len__(self):
         return self.num_data
@@ -62,12 +68,14 @@ class PadCollate:
             return sentences
 
         if self.isTrain:
-            spm_src, khaiii_src, konlpy_src, date, order, id_, trg = zip(*batch)
-            return pack_sentence(spm_src), pack_sentence(khaiii_src), pack_sentence(konlpy_src), \
+            spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_, trg = zip(*batch)
+            return pack_sentence(spm_total_src), pack_sentence(khaiii_total_src), pack_sentence(konlpy_total_src), \
+                pack_sentence(spm_src), pack_sentence(khaiii_src), pack_sentence(konlpy_src), \
                 torch.LongTensor(date), torch.LongTensor(order), id_, torch.LongTensor(trg)
         else:
-            spm_src, khaiii_src, konlpy_src, date, order, id_ = zip(*batch)
-            return pack_sentence(spm_src), pack_sentence(khaiii_src), pack_sentence(konlpy_src), \
+            spm_total_src, khaiii_total_src, konlpy_total_src, spm_src, khaiii_src, konlpy_src, date, order, id_ = zip(*batch)
+            return pack_sentence(spm_total_src), pack_sentence(khaiii_total_src), pack_sentence(konlpy_total_src), \
+                pack_sentence(spm_src), pack_sentence(khaiii_src), pack_sentence(konlpy_src), \
                 torch.LongTensor(date), torch.LongTensor(order), id_
 
     def __call__(self, batch):
