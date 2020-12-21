@@ -60,3 +60,11 @@ dacon link: https://dacon.io/competitions/official/235658/overview/
 - 정말 큰 모델을 만들어 보자
 - Total과 content 모두 넣어서 싸그리 학습
 - LSTM, SRU, 등 그냥 있는대로 다 때려박고 진행해보자
+
+## 12월 22일 01:00
+아이디어:
+- 다 떄려박는 모델 만들기는 하는데, 어떤 식으로 합칠지 고민
+- 논문() 참조도 고려
+변경점:
+- LSTM 추가
+- Total, Content only 버젼 추가만 되어있음, 코드 수정 필요

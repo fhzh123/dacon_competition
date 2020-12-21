@@ -182,6 +182,32 @@ class Total_model(nn.Module):
             khaiii_src_mask = get_pad_mask(khaiii_src, self.pad_idx)
             konlpy_src_mask = get_pad_mask(konlpy_src, self.pad_idx)
 
+            # #=====Total=====#
+            # # SentencePiece input
+            # spm_encoder_out = self.src_cont_spm_embedding(spm_src)
+            # spm_encoder_out, *_ = self.trs_encoder_spm_cont(spm_encoder_out, spm_src_mask)
+            # spm_encoder_out = self.trs_trg_output_norm_spm(self.dropout(F.gelu(self.trs_trg_output_linear_spm(spm_encoder_out))))
+            # spm_encoder_out = F.max_pool1d(spm_encoder_out.permute(0,2,1), spm_encoder_out.size(1)).squeeze(2)
+            # # spm_encoder_out = self.trs_trg_output_linear2_spm(spm_encoder_out)[:,0,:]
+
+            # # Khaiii input
+            # khaiii_encoder_out = self.src_cont_khaiii_embedding(khaiii_src)
+            # khaiii_encoder_out, *_ = self.trs_encoder_khaiii_cont(khaiii_encoder_out, khaiii_src_mask)
+            # khaiii_encoder_out = self.trs_trg_output_norm_khaiii(self.dropout(F.gelu(self.trs_trg_output_linear_khaiii(khaiii_encoder_out))))
+            # khaiii_encoder_out = F.max_pool1d(khaiii_encoder_out.permute(0,2,1), khaiii_encoder_out.size(1)).squeeze(2)
+            # # khaiii_encoder_out = self.trs_trg_output_linear2_khaiii(khaiii_encoder_out)[:,0,:]
+
+            # # KoNLPy input
+            # konlpy_encoder_out = self.src_cont_konlpy_embedding(konlpy_src)
+            # konlpy_encoder_out, *_ = self.trs_encoder_konlpy_cont(konlpy_encoder_out, konlpy_src_mask)
+            # konlpy_encoder_out = self.trs_trg_output_norm_konlpy(self.dropout(F.gelu(self.trs_trg_output_linear_konlpy(konlpy_encoder_out))))
+            # konlpy_encoder_out = F.max_pool1d(konlpy_encoder_out.permute(0,2,1), konlpy_encoder_out.size(1)).squeeze(2)
+            # # konlpy_encoder_out = self.trs_trg_output_linear2_konlpy(konlpy_encoder_out)[:,0,:]
+
+            # # Concat
+            # encoder_out = self.embedding_concat_linear(torch.cat((spm_encoder_out, khaiii_encoder_out, konlpy_encoder_out), dim=1))
+            # encoder_out = self.trg_output_total_linear(encoder_out)
+
             #=====Content only=====#
             # SentencePiece input
             spm_encoder_out = self.src_cont_spm_embedding(spm_src)
