@@ -6,7 +6,7 @@ from torch.nn.modules.activation import MultiheadAttention
 
 from .embedding.total_embedding import TotalEmbedding
 from .modules.transformer_encoder import Transformer_Encoder
-from .modules.rnn_layers import rnn_GRU
+from .modules.rnn_layers import rnn_GRU, rnn_LSTM
 # from .modules.transformer_sublayers import PositionalEncoding
 from .modules.transformer_utils import get_pad_mask
 
@@ -30,13 +30,22 @@ class Total_model(nn.Module):
         # Source embedding part
         self.src_total_spm_embedding = TotalEmbedding(src_vocab_num_dict['spm'], d_model, d_embedding, 
                                                       pad_idx=self.pad_idx, max_len=self.max_len,
-                                                      segment_embedding=False)
-        self.src_khaiii_embedding = TotalEmbedding(src_vocab_num_dict['khaiii'], d_model, d_embedding, 
-                                                   pad_idx=self.pad_idx, max_len=self.max_len,
-                                                   segment_embedding=False)
-        self.src_konlpy_embedding = TotalEmbedding(src_vocab_num_dict['konlpy'], d_model, d_embedding, 
-                                                   pad_idx=self.pad_idx, max_len=self.max_len,
-                                                   segment_embedding=False) 
+                                                      segment_embedding=True)
+        self.src_total_khaiii_embedding = TotalEmbedding(src_vocab_num_dict['khaiii'], d_model, d_embedding, 
+                                                         pad_idx=self.pad_idx, max_len=self.max_len,
+                                                         segment_embedding=True)
+        self.src_total_konlpy_embedding = TotalEmbedding(src_vocab_num_dict['konlpy'], d_model, d_embedding, 
+                                                         pad_idx=self.pad_idx, max_len=self.max_len,
+                                                         segment_embedding=True)
+        self.src_cont_spm_embedding = TotalEmbedding(src_vocab_num_dict['spm'], d_model, d_embedding, 
+                                                     pad_idx=self.pad_idx, max_len=self.max_len,
+                                                     segment_embedding=False)
+        self.src_cont_khaiii_embedding = TotalEmbedding(src_vocab_num_dict['khaiii'], d_model, d_embedding, 
+                                                        pad_idx=self.pad_idx, max_len=self.max_len,
+                                                        segment_embedding=False)
+        self.src_cont_konlpy_embedding = TotalEmbedding(src_vocab_num_dict['konlpy'], d_model, d_embedding, 
+                                                        pad_idx=self.pad_idx, max_len=self.max_len,
+                                                        segment_embedding=False) 
         # self.src_embedding_trs = nn.Embedding(src_vocab_num, d_embedding, padding_idx=pad_idx)
         # self.position_enc = PositionalEncoding(d_embedding, n_position=max_len)
         # self.embedding_linear = nn.Linear(d_embedding, d_model)
@@ -60,14 +69,24 @@ class Total_model(nn.Module):
         if model_type in ['total', 'rnn']:
             # RNN
             self.rnn_gru = rnn_GRU(src_vocab_num_dict['spm'], trg_num=trg_num, d_embedding=d_embedding, 
-                                d_model=d_model, n_layers=num_rnn_layer, pad_idx=pad_idx,
-                                dropout=dropout, embedding_dropout=dropout*0.5)
+                                   d_model=d_model, n_layers=num_rnn_layer, pad_idx=pad_idx,
+                                   dropout=dropout, embedding_dropout=dropout*0.5)
+
+            # LSTM
+            self.rnn_lstm = rnn_LSTM(src_vocab_num_dict['spm'], trg_num=trg_num, d_embedding=d_embedding, 
+                                     d_model=d_model, n_layers=num_rnn_layer, pad_idx=pad_idx,
+                                     dropout=dropout, embedding_dropout=dropout*0.5)
 
             # RNN output part
-            self.rnn_trg_output_linear = nn.Linear(d_model, d_embedding, bias=True)
-            self.rnn_trg_output_norm = nn.LayerNorm(d_embedding)
-            self.rnn_trg_output_linear2 = nn.Linear(d_embedding, trg_num, bias=True)
-            self.rnn_trg_softmax = nn.Softmax(dim=1)
+            self.gru_trg_output_linear = nn.Linear(d_model, d_embedding, bias=True)
+            self.gru_trg_output_norm = nn.LayerNorm(d_embedding)
+            self.gru_trg_output_linear2 = nn.Linear(d_embedding, trg_num, bias=True)
+            self.gru_trg_softmax = nn.Softmax(dim=1)
+
+            self.lstm_trg_output_linear = nn.Linear(d_model, d_embedding, bias=True)
+            self.lstm_trg_output_norm = nn.LayerNorm(d_embedding)
+            self.lstm_trg_output_linear2 = nn.Linear(d_embedding, trg_num, bias=True)
+            self.lstm_trg_softmax = nn.Softmax(dim=1)
 
         #===================================#
         #============Transformer============#
@@ -75,18 +94,31 @@ class Total_model(nn.Module):
 
         if model_type in ['total', 'transformer']:
             # Transformer
-            self.trs_encoder_spm = Transformer_Encoder(d_model, dim_feedforward, 
-                                                       n_layers=num_transformer_layer,
-                                                       n_head=n_head, d_k=d_k, d_v=d_v, 
-                                                       pad_idx=pad_idx, dropout=dropout)
-            self.trs_encoder_khaiii = Transformer_Encoder(d_model, dim_feedforward, 
-                                                          n_layers=num_transformer_layer,
-                                                          n_head=n_head, d_k=d_k, d_v=d_v, 
-                                                          pad_idx=pad_idx, dropout=dropout)
-            self.trs_encoder_konlpy = Transformer_Encoder(d_model, dim_feedforward, 
-                                                          n_layers=num_transformer_layer,
-                                                          n_head=n_head, d_k=d_k, d_v=d_v, 
-                                                          pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_spm_total = Transformer_Encoder(d_model, dim_feedforward, 
+                                                             n_layers=num_transformer_layer,
+                                                             n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                             pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_khaiii_total = Transformer_Encoder(d_model, dim_feedforward, 
+                                                                n_layers=num_transformer_layer,
+                                                                n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                                pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_konlpy_total = Transformer_Encoder(d_model, dim_feedforward, 
+                                                                n_layers=num_transformer_layer,
+                                                                n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                                pad_idx=pad_idx, dropout=dropout)
+
+            self.trs_encoder_spm_cont = Transformer_Encoder(d_model, dim_feedforward, 
+                                                            n_layers=num_transformer_layer,
+                                                            n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                            pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_khaiii_cont = Transformer_Encoder(d_model, dim_feedforward, 
+                                                               n_layers=num_transformer_layer,
+                                                               n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                               pad_idx=pad_idx, dropout=dropout)
+            self.trs_encoder_konlpy_cont = Transformer_Encoder(d_model, dim_feedforward, 
+                                                               n_layers=num_transformer_layer,
+                                                               n_head=n_head, d_k=d_k, d_v=d_v, 
+                                                               pad_idx=pad_idx, dropout=dropout)
 
             # Transformer output part
             self.trs_trg_output_linear_spm = nn.Linear(d_model, d_embedding, bias=False)
@@ -130,9 +162,16 @@ class Total_model(nn.Module):
         #===================================#
 
         if self.model_type in ['total', 'rnn']:
-            rnn_out, *_ = self.rnn_gru(spm_src)
-            rnn_out = self.rnn_trg_output_norm(self.dropout(F.gelu(self.rnn_trg_output_linear(rnn_out))))
-            rnn_out = self.rnn_trg_output_linear2(rnn_out)
+            # RNN modules
+            gru_out, *_ = self.rnn_gru(spm_src)
+            lstm_out, *_ = self.rnn_lstm(spm_src)
+
+            # Output linear
+            gru_out = self.gru_trg_output_norm(self.dropout(F.gelu(self.gru_trg_output_linear(gru_out))))
+            gru_out = self.gru_trg_output_linear2(gru_out)
+
+            lstm_out = self.lstm_trg_output_norm(self.dropout(F.gelu(self.lstm_trg_output_linear(lstm_out))))
+            lstm_out = self.lstm_trg_output_linear2(lstm_out)
         
         #===================================#
         #============Transformer============#
@@ -143,23 +182,24 @@ class Total_model(nn.Module):
             khaiii_src_mask = get_pad_mask(khaiii_src, self.pad_idx)
             konlpy_src_mask = get_pad_mask(konlpy_src, self.pad_idx)
 
+            #=====Content only=====#
             # SentencePiece input
-            spm_encoder_out = self.src_total_spm_embedding(spm_src)
-            spm_encoder_out, *_ = self.trs_encoder_spm(spm_encoder_out, spm_src_mask)
+            spm_encoder_out = self.src_cont_spm_embedding(spm_src)
+            spm_encoder_out, *_ = self.trs_encoder_spm_cont(spm_encoder_out, spm_src_mask)
             spm_encoder_out = self.trs_trg_output_norm_spm(self.dropout(F.gelu(self.trs_trg_output_linear_spm(spm_encoder_out))))
             spm_encoder_out = F.max_pool1d(spm_encoder_out.permute(0,2,1), spm_encoder_out.size(1)).squeeze(2)
             # spm_encoder_out = self.trs_trg_output_linear2_spm(spm_encoder_out)[:,0,:]
 
             # Khaiii input
-            khaiii_encoder_out = self.src_khaiii_embedding(khaiii_src)
-            khaiii_encoder_out, *_ = self.trs_encoder_khaiii(khaiii_encoder_out, khaiii_src_mask)
+            khaiii_encoder_out = self.src_cont_khaiii_embedding(khaiii_src)
+            khaiii_encoder_out, *_ = self.trs_encoder_khaiii_cont(khaiii_encoder_out, khaiii_src_mask)
             khaiii_encoder_out = self.trs_trg_output_norm_khaiii(self.dropout(F.gelu(self.trs_trg_output_linear_khaiii(khaiii_encoder_out))))
             khaiii_encoder_out = F.max_pool1d(khaiii_encoder_out.permute(0,2,1), khaiii_encoder_out.size(1)).squeeze(2)
             # khaiii_encoder_out = self.trs_trg_output_linear2_khaiii(khaiii_encoder_out)[:,0,:]
 
             # KoNLPy input
-            konlpy_encoder_out = self.src_konlpy_embedding(konlpy_src)
-            konlpy_encoder_out, *_ = self.trs_encoder_konlpy(konlpy_encoder_out, konlpy_src_mask)
+            konlpy_encoder_out = self.src_cont_konlpy_embedding(konlpy_src)
+            konlpy_encoder_out, *_ = self.trs_encoder_konlpy_cont(konlpy_encoder_out, konlpy_src_mask)
             konlpy_encoder_out = self.trs_trg_output_norm_konlpy(self.dropout(F.gelu(self.trs_trg_output_linear_konlpy(konlpy_encoder_out))))
             konlpy_encoder_out = F.max_pool1d(konlpy_encoder_out.permute(0,2,1), konlpy_encoder_out.size(1)).squeeze(2)
             # konlpy_encoder_out = self.trs_trg_output_linear2_konlpy(konlpy_encoder_out)[:,0,:]
@@ -188,7 +228,7 @@ class Total_model(nn.Module):
             if self.bilinear:
                 logit = self.output_linear(rnn_out, encoder_out)
             else:
-                logit = self.output_linear(torch.cat((rnn_out, encoder_out, gap_out), dim=1))
+                logit = self.output_linear(torch.cat((gru_out, encoder_out, gap_out), dim=1))
 
         elif self.model_type == 'gap':
             logit = gap_out
