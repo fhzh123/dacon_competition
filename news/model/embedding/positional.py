@@ -5,12 +5,8 @@ import torch.nn as nn
 
 class PositionalEmbedding(nn.Module):
 
-    def __init__(self, d_embedding, max_len=512, segment_embedding=False):
+    def __init__(self, d_embedding, max_len=512,):
         super().__init__()
-
-        # # If segment_embedding max length is full
-        # if segment_embedding:
-        #     max_len += 1
 
         # Compute the positional encodings once in log space.
         pe = torch.zeros(max_len, d_embedding).float()
