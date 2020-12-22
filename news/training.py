@@ -265,7 +265,7 @@ def training(args):
     wrong_dat['date_time'] = [datetime.datetime.today().strftime('%m/%d/%H:%M') for _ in range(len(wrong_dat))]
     wrong_dat['id_'] = wrong_id_list
     wrong_dat = wrong_dat.merge(train_dat[['id_', 'title', 'content', 'info']], on='id_')
-    wrong_dat = wrong_dat[['date_time', 'id_', 'title', 'content', 0, 1, 'info']]
+    wrong_dat = wrong_dat[['date_time', 'id_', 'title', 'content', '0', '1', 'info']]
 
     wrong_dat_total = pd.concat([wrong_dat_total, wrong_dat], axis=0)
     wrong_dat_total.to_csv(os.path.join(args.results_path, 'wrong_list.csv'), index=False)

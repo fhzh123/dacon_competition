@@ -25,7 +25,8 @@ class TotalEmbedding(nn.Module):
         self.segment_embedding = segment_embedding
 
         self.token = TokenEmbedding(vocab_size=vocab_size, d_embedding=d_embedding, pad_idx=pad_idx)
-        self.position = PositionalEmbedding(d_embedding=d_embedding, max_len=max_len)
+        self.position = PositionalEmbedding(d_embedding=d_embedding, max_len=max_len, 
+                                            segment_embedding=segment_embedding)
         if segment_embedding:
             self.segment = SegmentEmbedding(d_embedding=d_embedding)
         self.linear_layer = nn.Linear(d_embedding, d_model)

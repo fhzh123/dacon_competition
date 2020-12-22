@@ -122,30 +122,30 @@ class Total_model(nn.Module):
 
             # Transformer output part
             # 1) Total
-            self.trs_trg_total_output_linear_spm = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_total_output_linear_spm = nn.Linear(d_model, d_embedding, bias=True)
             self.trs_trg_total_output_norm_spm = nn.LayerNorm(d_embedding)
-            self.trs_trg_total_output_linear2_spm = nn.Linear(d_embedding, trg_num, bias=False)
+            self.trs_trg_total_output_linear2_spm = nn.Linear(d_embedding, trg_num, bias=True)
 
-            self.trs_trg_total_output_linear_khaiii = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_total_output_linear_khaiii = nn.Linear(d_model, d_embedding, bias=True)
             self.trs_trg_total_output_norm_khaiii = nn.LayerNorm(d_embedding)
-            self.trs_trg_total_output_linear2_khaiii = nn.Linear(d_embedding, trg_num, bias=False)
+            self.trs_trg_total_output_linear2_khaiii = nn.Linear(d_embedding, trg_num, bias=True)
 
-            self.trs_trg_total_output_linear_konlpy = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_total_output_linear_konlpy = nn.Linear(d_model, d_embedding, bias=True)
             self.trs_trg_total_output_norm_konlpy = nn.LayerNorm(d_embedding)
-            self.trs_trg_total_output_linear2_konlpy = nn.Linear(d_embedding, trg_num, bias=False)
+            self.trs_trg_total_output_linear2_konlpy = nn.Linear(d_embedding, trg_num, bias=True)
 
             # 2) Content only
-            self.trs_trg_output_linear_spm = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_output_linear_spm = nn.Linear(d_model, d_embedding, bias=True)
             self.trs_trg_output_norm_spm = nn.LayerNorm(d_embedding)
-            self.trs_trg_output_linear2_spm = nn.Linear(d_embedding, trg_num, bias=False)
+            self.trs_trg_output_linear2_spm = nn.Linear(d_embedding, trg_num, bias=True)
 
-            self.trs_trg_output_linear_khaiii = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_output_linear_khaiii = nn.Linear(d_model, d_embedding, bias=True)
             self.trs_trg_output_norm_khaiii = nn.LayerNorm(d_embedding)
-            self.trs_trg_output_linear2_khaiii = nn.Linear(d_embedding, trg_num, bias=False)
+            self.trs_trg_output_linear2_khaiii = nn.Linear(d_embedding, trg_num, bias=True)
 
-            self.trs_trg_output_linear_konlpy = nn.Linear(d_model, d_embedding, bias=False)
+            self.trs_trg_output_linear_konlpy = nn.Linear(d_model, d_embedding, bias=True)
             self.trs_trg_output_norm_konlpy = nn.LayerNorm(d_embedding)
-            self.trs_trg_output_linear2_konlpy = nn.Linear(d_embedding, trg_num, bias=False)
+            self.trs_trg_output_linear2_konlpy = nn.Linear(d_embedding, trg_num, bias=True)
 
         #===================================#
         #============Concatenate============#

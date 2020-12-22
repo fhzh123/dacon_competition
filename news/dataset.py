@@ -16,9 +16,9 @@ class CustomDataset(Dataset):
                 spm_src_list, khaiii_src_list, konlpy_src_list, date_list, 
                 ord_list, id_list, trg_list
             ):
-                if min_len <= len(spm_src) <= max_len:
-                    if min_len <= len(khaiii_src) <= max_len:
-                        if min_len <= len(konlpy_src) <= max_len:
+                if min_len <= len(spm_total_src) <= max_len:
+                    if min_len <= len(khaiii_total_src) <= max_len:
+                        if min_len <= len(konlpy_total_src) <= max_len:
                             data.append((spm_total_src, khaiii_total_src, konlpy_total_src,
                                          spm_src, khaiii_src, konlpy_src, date, order, id_, trg))
         else:
@@ -27,9 +27,9 @@ class CustomDataset(Dataset):
                 spm_src_list, khaiii_src_list, konlpy_src_list, date_list, 
                 ord_list, id_list
             ):
-                if min_len <= len(spm_src) <= max_len:
-                    if min_len <= len(khaiii_src) <= max_len:
-                        if min_len <= len(konlpy_src) <= max_len:
+                if min_len <= len(spm_total_src) <= max_len:
+                    if min_len <= len(khaiii_total_src) <= max_len:
+                        if min_len <= len(konlpy_total_src) <= max_len:
                             data.append((spm_total_src, khaiii_total_src, konlpy_total_src, 
                                          spm_src, khaiii_src, konlpy_src, date, order, id_))
         

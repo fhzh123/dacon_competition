@@ -83,7 +83,7 @@ class khaiii_encoder:
                 for title in p_bar_content
         ]
         total_indices =[
-            title_[:-1] + [self.sep_idx] +content_[1:] \
+            title_[:-1] + [self.sep_idx] + content_[1:] \
                 for title_, content_ in zip(title_indices, content_indices)
         ]
 
