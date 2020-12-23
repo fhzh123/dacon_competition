@@ -101,12 +101,15 @@ def training(args):
                         dim_feedforward=args.dim_feedforward, dropout=args.dropout,
                         bilinear=args.bilinear, num_transformer_layer=args.num_transformer_layer,
                         num_rnn_layer=args.num_rnn_layer, device=device)
-    # optimizer = Ralamb(params=filter(lambda p: p.requires_grad, model.parameters()), 
-    #                    lr=args.max_lr, weight_decay=args.w_decay)
+    if args.Ralamb:
+        optimizer = Ralamb(params=filter(lambda p: p.requires_grad, model.parameters()), 
+                           lr=args.max_lr, weight_decay=args.w_decay)
+    else:
+        optimizer = optim.SGD(model.parameters(), lr=args.max_lr, momentum=args.momentum,
+                              weight_decay=args.w_decay)
     # optimizer = optim_lib.Lamb(params=model.parameters(), 
     #                        lr=args.max_lr, weight_decay=args.w_decay)
-    optimizer = optim.SGD(model.parameters(), lr=args.max_lr, momentum=args.momentum,
-                          weight_decay=args.w_decay)
+
     if args.n_warmup_epochs != 0:
         scheduler = WarmupLinearSchedule(optimizer, warmup_steps=args.n_warmup_epochs*len(dataloader_dict['train']), 
                                         t_total=len(dataloader_dict['train'])*args.num_epoch)
