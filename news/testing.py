@@ -47,11 +47,14 @@ def testing(args):
 
     test_dataset = CustomDataset(total_test_text_indices_spm, total_test_text_indices_khaiii, 
                                  total_test_text_indices_konlpy,
+                                 test_content_indices_spm, test_content_indices_khaiii,
+                                 test_content_indices_konlpy,
                                  test_date_list, test_ord_list, test_id_list,
                                  isTrain=False, min_len=args.min_len, max_len=args.max_len)
     test_dataloader = DataLoader(test_dataset, collate_fn=PadCollate(isTrain=False), drop_last=False,
                                  batch_size=args.batch_size, num_workers=args.num_workers, shuffle=False, pin_memory=True)
     print(f"Total number of testsets iterations - {len(test_dataset)}, {len(test_dataloader)}")
+    print(f'{len(total_test_text_indices_spm) - len(test_dataset)} data is exceptd.')
 
     #===================================#
     #============Model load=============#
@@ -75,13 +78,18 @@ def testing(args):
     freq = 0
     start_time = time.time()
 
-    for i, (total_src, title_src, content_src, date, order, id_) in enumerate(test_dataloader):
-        total_src = total_src.to(device)
-        title_src = title_src.to(device)
-        content_src = content_src.to(device)
+    for i, (total_src_spm, total_src_khaiii, total_src_konlpy, src_spm, src_khaiii, src_konlpy, date, order, id_) in enumerate(test_dataloader):
+
+        # Source, Target sentence setting
+        total_src_spm = total_src_spm.to(device)
+        total_src_khaiii = total_src_khaiii.to(device)
+        total_src_konlpy = total_src_konlpy.to(device)
+        src_spm = src_spm.to(device)
+        src_khaiii = src_khaiii.to(device)
+        src_konlpy = src_konlpy.to(device)
 
         with torch.no_grad():
-            predicted_logit = model(total_src, title_src, content_src)
+            predicted_logit = model(total_src_spm, total_src_khaiii, total_src_konlpy, src_spm, src_khaiii, src_konlpy)
             predicted = predicted_logit.max(dim=1)[1].clone().tolist()
             if i == 0:
                 id_list = id_
