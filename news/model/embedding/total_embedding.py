@@ -34,7 +34,7 @@ class TotalEmbedding(nn.Module):
 
     def forward(self, sequence):
         if self.segment_embedding:
-            x = self.token(sequence) + self.position(sequence) + self.segment(sequence)
+            x = self.token(sequence) + self.position(sequence).repeat(sequence.size(0),1,1) + self.segment(sequence)
         else:
             x = self.token(sequence) + self.position(sequence)
         x = self.embedding_dropout(x)
