@@ -26,6 +26,9 @@ from dataset import KeypointDataset, collate_fn
 
 def training(args):
 
+    # Random seed
+    random.seed(42)
+
     # Device setting
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -108,12 +111,17 @@ def training(args):
         model = model.to(device)
 
     # Train start
+
+    best_val_rmse = None
+
     for epoch in range(start_epoch, args.num_epochs):
         for phase in ['train', 'valid']:
             if phase == 'train':
                 model.train()
             if phase == 'valid':
+                print('Validation start...')
                 model.eval()
+                val_rmse = 0
             for i, (images, targets) in enumerate(tqdm(dataloader_dict[phase])):
                 # Optimizer setting
                 optimizer.zero_grad()
@@ -124,20 +132,32 @@ def training(args):
 
                 with torch.set_grad_enabled(phase == 'train'):
                     losses = model(images, targets)
-                    loss = sum(loss for loss in losses.values())
                     if phase == 'train':
+                        loss = sum(loss for loss in losses.values())
                         loss.backward()
                         clip_grad_norm_(model.parameters(), args.grad_clip)
                         optimizer.step()
 
-                    if (i+1) % 100 == 0:
-                        print(f'| epoch: {epoch} | loss: {loss.item():.4f}', end=' | ')
-                        for k, v in losses.items():
-                            print(f'{k[5:]}: {v.item():.4f}', end=' | ')
-                        print()
-        torch.save({
-            'epoch': epoch,
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-            'scheduler': scheduler.state_dict(),
-        }, args.file_name)
+                        if (i+1) % 100 == 0:
+                            print(f'| epoch: {epoch} | lr: {optimizer.param_groups[0]["lr"]} | loss: {loss.item():.4f}', end=' | ')
+                            for k, v in losses.items():
+                                print(f'{k[5:]}: {v.item():.4f}', end=' | ')
+                            print()
+                    if phase == 'valid':
+                        for i, l in enumerate(losses):
+                            pred_ = l['keypoints'][0][:,:2].detach().cpu().numpy().reshape(-1)
+                            target_ = targets[i]['keypoints'][0][:,:2].cpu().numpy().reshape(-1)
+                            val_rmse += np.sqrt(((pred_ - target_) ** 2).mean())
+
+            if phase == 'valid':
+                val_rmse /= len(dataloader_dict[phase])
+                print(f'Validation RMSE: {val_rmse}')
+                if not best_val_rmse or val_rmse < best_val_rmse:
+                    print('Checkpoint saving...')
+                    torch.save({
+                        'epoch': epoch,
+                        'model': model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                        'scheduler': scheduler.state_dict(),
+                    }, args.file_name)
+                    best_val_rmse = val_rmse
