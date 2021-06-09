@@ -1,5 +1,7 @@
 import os
+import re
 import pandas as pd
+from datetime import datetime
 from collections import Counter
 
 def preprocessing(args):
@@ -20,6 +22,18 @@ def preprocessing(args):
     test['lunch'] = test['중식메뉴'].apply(lambda x: x.split())
     test['supper'] = test['석식메뉴'].apply(lambda x: x.split())
 
+    # Date processing
+    train['datetime'] = train['일자'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
+    train['year'] = train['datetime'].apply(lambda x: x.year)
+    train['month'] = train['datetime'].apply(lambda x: x.month)
+    train['day'] = train['datetime'].apply(lambda x: x.day)
+    train['weekday'] = train['datetime'].apply(lambda x: x.weekday())
+    test['datetime'] = test['일자'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
+    test['year'] = test['datetime'].apply(lambda x: x.year)
+    test['month'] = test['datetime'].apply(lambda x: x.month)
+    test['day'] = test['datetime'].apply(lambda x: x.day)
+    test['weekday'] = test['datetime'].apply(lambda x: x.weekday())
+
     # Target processing
     train['total'] = train['본사정원수'] - train['본사휴가자수'] - \
                      train['본사출장자수'] - train['현본사소속재택근무자수']
@@ -38,7 +52,7 @@ def preprocessing(args):
     menu_dict = dict()
     for i, (k, v) in enumerate(menu_counter.items()):
         if v >= args.min_count:
-            menu_dict[i] = k
+            menu_dict[k] = i
 
     # Encoding
     train['breakfast_parsing'] = \
@@ -54,5 +68,19 @@ def preprocessing(args):
     test['supper_parsing'] = \
         [[menu_dict.get(x, len(menu_counter.items())) for x in test['supper'][i]] for i in range(len(test))]
 
+    # DataFrame setting
+    reg = re.compile(r'[a-zA-Z]')
+    remain_column_train = list()
+
+    for col in train.columns:
+        if reg.match(col):
+            remain_column_train.append(col)
+
+    remain_column_test = [x for x in remain_column_train if x not in ['target_lunch', 'target_supper']]
+
+    train_dat = train[remain_column_train]
+    test_dat = test[remain_column_test]
+
     # Saving
-    word.encode().isalpha():
+    train_dat.to_csv(os.path.join(args.preprocessed_path, 'train_processed.csv'), index=False)
+    test_dat.to_csv(os.path.join(args.preprocessed_path, 'test_processed.csv'), index=False)
