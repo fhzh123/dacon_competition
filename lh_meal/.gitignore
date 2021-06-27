@@ -1,3 +1,4 @@
 *.ipynb
 preprocessed/
+__pycache__/
 .ipynb_checkpoints/
