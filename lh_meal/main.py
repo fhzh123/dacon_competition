@@ -26,37 +26,13 @@ if __name__=='__main__':
                         help='Pre-processed data save path')
     parser.add_argument('--data_path', default='/HDD/kyohoon/lh_meal', type=str,
                         help='Original data path')
-    parser.add_argument('--vit_save_path', default='/HDD/kyohoon/model_checkpoint/vit/', type=str,
-                        help='Model checkpoint file path')
-    parser.add_argument('--captioning_preprocess_path', default='./preprocessing', type=str,
-                        help='Pre-processed data save path')
-    parser.add_argument('--captioning_data_path', default='/HDD/dataset/coco', type=str,
-                        help='Original data path')
-    parser.add_argument('--captioning_save_path', default='/HDD/kyohoon/model_checkpoint/captioning/', type=str,
-                        help='Model checkpoint file path')
-    parser.add_argument('--transgan_preprocess_path', default='./preprocessing', type=str,
-                        help='Pre-processed data save path')
-    parser.add_argument('--transgan_data_path', default='/HDD/dataset/celeba', type=str,
-                        help='Original data path')
-    parser.add_argument('--transgan_save_path', default='./testing_img', type=str,
+    parser.add_argument('--save_path', default='/HDD/kyohoon/model_checkpoint/vit/', type=str,
                         help='Model checkpoint file path')
     # Data setting
-    parser.add_argument('--img_size', default=64, type=int,
-                        help='Image resize size; Default is 256')
-    parser.add_argument('--vocab_size', default=8000, type=int,
-                        help='Caption vocabulary size; Default is 8000')
-    parser.add_argument('--pad_id', default=0, type=int,
-                        help='Padding token index; Default is 0')
-    parser.add_argument('--unk_id', default=3, type=int,
-                        help='Unknown token index; Default is 3')
-    parser.add_argument('--bos_id', default=1, type=int,
-                        help='Start token index; Default is 1')
-    parser.add_argument('--eos_id', default=2, type=int,
-                        help='End token index; Default is 2')
     parser.add_argument('--min_count', default=1, type=int,
                         help='Minimum length of caption; Default is 1')
-    parser.add_argument('--max_len', default=300, type=int,
-                        help='Maximum length of caption; Default is 300')
+    parser.add_argument('--valid_split_ratio', default=0.1, type=float,
+                        help='Train & Valid dataset split ratio; Default is 0.1')
     # Model setting
     parser.add_argument('--patch_size', default=32, type=int, 
                         help='ViT patch size; Default is 32')
