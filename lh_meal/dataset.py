@@ -20,6 +20,7 @@ class CustomDataset(Dataset):
             menu_dict = pickle.load(f)
         cls_token = len(menu_dict) + 1
         sep_token = len(menu_dict) + 2
+        self.unique_value_count = sep_token
 
         # Append parsed data
         data = list()
@@ -54,6 +55,9 @@ class CustomDataset(Dataset):
     
     def __len__(self):
         return self.num_data
+
+    def unique_count(self):
+        return self.unique_value_count + 1
 
 class PadCollate:
     def __init__(self, pad_index=0, dim=0):
